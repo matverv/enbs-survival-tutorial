@@ -1,0 +1,141 @@
+# Copyright (c) 2023 Mathyn Vervaart, Eline Aas, Karl Claxton, Anna Heath, Mark Strong, Nicky Welton, Torbjørn Wisløff 
+# Licensed under the MIT License
+
+rm(list=ls(all=TRUE))	# clear workspace
+
+#####################################################################################
+# Probabilistic Analysis
+#####################################################################################
+
+# load functions
+library(here); source(here("R", "ce_model_functions.R"))
+
+# Run a probabilistic analysis of size "K"
+set.seed(123)         # set the seed for reproducibility
+K <- 5e3              # number of simulations
+l_pa <- pa_fun(K)     # run the probabilistic analysis
+
+# OS and PFS probabilities
+l_os <- l_pa$l_os    # OS probabilities
+l_pfs <- l_pa$l_pfs  # PFS probabilities
+
+# incremental net benefits
+thresh <- 3e4 # opportunity cost/willingness to pay threshold 
+incr_cost <- l_pa$v_cost1 - l_pa$v_cost2 # incremental costs
+incr_qaly <- l_pa$v_qaly1 - l_pa$v_qaly2 # incremental QALYs
+v_inb <- (incr_qaly)  - (incr_cost) / thresh # incremental net health benefits
+
+# Mean OS and PFS curves plot
+trt_labs <- c("Pembrolizumab + Axitinib", "Sunitinib")  # treatment labels
+ncyc_y <- 52                                            # number of model cycles per year
+plot_surv_fun(trt_labs, ncyc_y, l_os, l_pfs)            # plot OS and PFS
+
+# Cost-effectiveness scatter plot
+plot_ce_scatter_fun(incr_cost, incr_qaly, thresh, "£")
+
+# Probabilistic ICER
+paste("ICER = £", round(mean(incr_cost) / mean(incr_qaly)), " per QALY gained", sep = "")
+
+
+#####################################################################################
+# Value of Information Analysis
+#####################################################################################
+
+# load functions
+source(here("R", "data_gen_functions.R")); source(here("R", "evsi_functions.R"))
+
+#################################################
+# Expected Value of (Partial) Perfect Information
+#################################################
+
+# Expected Value of Perfect Information
+evpi <- mean(pmax(v_inb, 0)) - mean(v_inb); evpi
+
+# Expected Value of Partial Perfect Information
+evppi_os <- surv_evppi_fun(v_inb, l_os)
+evppi_os_pfs <- surv_evppi_fun(v_inb, l_os, l_pfs)
+
+##################################################
+# Expected Value of Sample Information
+##################################################
+
+### Settings
+
+# start (truncation) times for OS and PFS in months
+v_start_os1 <- subset(l_pa$m_ipd_os, treat == 1 & event == 0, select = tt)$tt
+v_start_os2 <- subset(l_pa$m_ipd_os, treat == 2 & event == 0, select = tt)$tt
+v_start_pfs1 <- subset(l_pa$m_ipd_pfs, treat == 1 & event == 0, select = tt)$tt
+v_start_pfs2 <- subset(l_pa$m_ipd_pfs, treat == 2 & event == 0, select = tt)$tt
+
+# specify Gamma distribution hyperparameters for the monthly trial dropout rates
+dropout1 <- 15; trisk1 <- sum(subset(l_pa$m_ipd_os, treat == 1, select = tt)$tt) # observed dropouts and time at risk in months for treatment 1
+dropout2 <- 20; trisk2 <- sum(subset(l_pa$m_ipd_os, treat == 2, select = tt)$tt) # observed dropouts and time at risk in months for treatment 2
+l_dropout <- list(c(dropout1, trisk1),
+                  c(dropout2, trisk2))
+
+# remove the number of trial drop-outs from the patients at risk assuming even spacing 
+l_start_os <- list(split_fun(v_start_os1, dropout1),    # list of start times for the patients at risk for OS
+                   split_fun(v_start_os2, dropout2))
+l_start_pfs <- list(split_fun(v_start_pfs1, dropout1),  # list of start times for the patients at risk for PFS
+                    split_fun(v_start_pfs2, dropout2))
+
+# range for the additional follow-up times in months
+add_fu <- c(1, 60)
+
+### Computations
+
+# compute EVSI for OS and interpolate the EVSI estimates across different follow-up times using asymptotic regression
+df_evsi_os <- evsi_os_fun(v_inb, l_os, l_start_os, add_fu, ncyc_y, l_dropout, l_enroll = NULL)  
+evsi_plot_fun(df_evsi_os, evppi_os$evppi) # plot the EVSI estimates
+
+# compute EVSI for OS + PFS and interpolate the EVSI estimates across different follow-up times using asymptotic regression
+# df_evsi_os_pfs <- evsi_os_pfs_fun(v_inb, l_os, l_pfs, l_start_os, l_start_pfs, add_fu, ncyc_y,  l_dropout, l_enroll = NULL)
+# evsi_plot_fun(df_evsi_os_pfs, evppi_os_pfs$evppi) # plot the EVSI estimates
+
+
+##################################################
+# Expected Net Benefit of Sampling
+##################################################
+
+# Predict additional follow-up required until end of follow-up (requires total of 404 observed deaths, 156 have been observed during current follow-up) 
+add_events <- 404 - 156                             # additional OS events required for the final analysis 
+round(spline(df_evsi_os$os_events, df_evsi_os$time, # estimated time in months until end of follow-up
+             ties = min,  xout = add_events)$y) 
+
+# range for the fixed trial setup costs
+c_fix <- c(0,0) # fixed trial setup costs
+
+# range for the monthly variable trial costs (estimated from Park et al. 2022, JAMA)
+d2p <- 0.7271 * 0.7                                    # exchange rate and purchasing power parities US dollar to GBP in 2021
+c_site <- 5000 * 124                                   # monthly site management costs for 124 sites
+c_database <- 2500                                     # monthly database management costs
+c_fu_pat <- 313 * length(unlist(l_start_os))           # monthly follow-up costs for 670 patients at risk 
+c_var_mu <- (sum(c_site, c_database, c_fu_pat) * d2p)  # mean total monthly costs (NHB)
+c_var <- c(c_var_mu * 0.75, c_var_mu * 1.25)           # range for the monthly costs
+
+# range for the decision reversal costs
+c_rev <- c(0,0)
+
+# monthly incident population 
+inc_pop <- ((12600 * 0.8 * 0.75 * 0.44) / 12)  # estimated from company submission in TA650
+inc_pop <- c(inc_pop * 0.95, inc_pop * 1.05)   # range for the monthly incidence
+
+# other settings
+t_lag <- c(-3,3)  # range for the time between the end of follow-up and decision making in months
+dec_th <- 120     # time horizon in months
+dr_voi <- 0.035   # annual discount rate
+reversal <- 1     # probability that an approval decision can be reversed
+
+#####  compute the ENBS #####
+# costs are converted to health units by dividing by <thresh>
+enbs_fun(df_evsi_os, v_inb,  
+         c_fix = c_fix / thresh, 
+         c_var = c_var / thresh,
+         c_var_time = NULL,
+         c_var_event = add_events,
+         c_rev = c_rev / thresh,
+         t_lag = t_lag,
+         inc_pop = inc_pop, 
+         dec_th = dec_th, 
+         dr_voi = dr_voi, 
+         reversal = reversal)
