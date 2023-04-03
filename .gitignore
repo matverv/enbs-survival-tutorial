@@ -1,9 +1,12 @@
+# macOS files
+.DS_Store
+
 # History files
 .Rhistory
 .Rapp.history
 
 # Session Data files
-.RData
+# .RData
 
 # User-specific files
 .Ruserdata
