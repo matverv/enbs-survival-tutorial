@@ -24,7 +24,7 @@ col <- gg_color_hue(3) # set color scheme
 #####################################################################################
 # Function for plotting K-M data
 #####################################################################################
-plot_km_fun <- function (dataset, strategies, x_max, break_x, y_lab = "Survival probability", ...) {
+plot_km_fun <- function (dataset, strategies, x_max, break_x, y_lab = "Survival probability", x_lab = "Time", ...) {
   
   fit_obj <- do.call(survfit, list(formula = Surv(tt, event) ~ treat, data = dataset))
   
@@ -36,7 +36,7 @@ plot_km_fun <- function (dataset, strategies, x_max, break_x, y_lab = "Survival 
     pval = F,
     font.submain = c(font_size, "plain"),
     palette = "lancet",
-    xlab = "Time",
+    xlab = x_lab,
     ylab = y_lab,
     xlim = c(0, x_max),
     #ylim = c(0.7,1),
