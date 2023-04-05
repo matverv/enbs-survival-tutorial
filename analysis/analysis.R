@@ -7,7 +7,10 @@ rm(list=ls(all=TRUE))	# clear workspace
 # Probabilistic Analysis
 #####################################################################################
 
-# load functions
+# install and/or load R package "here" and the cost-effectiveness model functions
+list_of_packages <- c("here")
+new_packages <- list_of_packages[!(list_of_packages %in% installed.packages()[,"Package"])]
+if(length(new_packages)) install.packages(new_packages)
 library(here); source(here("R", "ce_model_functions.R"))
 
 # Run a probabilistic analysis of size "K"
@@ -20,10 +23,10 @@ l_os <- l_pa$l_os    # OS probabilities
 l_pfs <- l_pa$l_pfs  # PFS probabilities
 
 # incremental net benefits
-thresh <- 3e4 # opportunity cost/willingness to pay threshold 
-incr_cost <- l_pa$v_cost1 - l_pa$v_cost2 # incremental costs
-incr_qaly <- l_pa$v_qaly1 - l_pa$v_qaly2 # incremental QALYs
-v_inb <- (incr_qaly)  - (incr_cost) / thresh # incremental net health benefits
+thresh <- 3e4                                 # opportunity cost/willingness to pay threshold 
+incr_cost <- l_pa$v_cost1 - l_pa$v_cost2      # incremental costs
+incr_qaly <- l_pa$v_qaly1 - l_pa$v_qaly2      # incremental QALYs
+v_inb <- (incr_qaly)  - (incr_cost) / thresh  # incremental net health benefits
 
 # Mean OS and PFS curves plot
 trt_labs <- c("Pembrolizumab + Axitinib", "Sunitinib")  # treatment labels
@@ -89,9 +92,12 @@ df_evsi_os <- evsi_os_fun(v_inb, l_os, l_start_os, add_fu, ncyc_y, l_dropout, l_
 evsi_plot_fun(df_evsi_os, evppi_os$evppi) # plot the EVSI estimates
 
 # compute EVSI for OS + PFS and interpolate the EVSI estimates across different follow-up times using asymptotic regression
-# df_evsi_os_pfs <- evsi_os_pfs_fun(v_inb, l_os, l_pfs, l_start_os, l_start_pfs, add_fu, ncyc_y,  l_dropout, l_enroll = NULL)
-# evsi_plot_fun(df_evsi_os_pfs, evppi_os_pfs$evppi) # plot the EVSI estimates
-
+# note: the EVSI code for OS + PFS  may take several times longer to run than for OS only
+compute_evsi_os_pfs <- "No" # set to "Yes" to compute EVSI for OS + PFS 
+if(compute_evsi_os_pfs == "Yes") {
+  df_evsi_os_pfs <- evsi_os_pfs_fun(v_inb, l_os, l_pfs, l_start_os, l_start_pfs, add_fu, ncyc_y,  l_dropout, l_enroll = NULL)
+  evsi_plot_fun(df_evsi_os_pfs, evppi_os_pfs$evppi) # plot the EVSI estimates
+}
 
 ##################################################
 # Expected Net Benefit of Sampling
@@ -128,7 +134,7 @@ reversal <- 1     # probability that an approval decision can be reversed
 
 #####  compute the ENBS #####
 # costs are converted to health units by dividing by <thresh>
-enbs_fun(df_evsi_os, v_inb,  
+enbs_fun(df_evsi_os, v_inb,  # replace "df_evsi_os" with "df_evsi_os_pfs" (if calculated) to compute the ENBS for OS + PFS
          c_fix = c_fix / thresh, 
          c_var = c_var / thresh,
          c_var_time = NULL,
