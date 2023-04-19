@@ -9,7 +9,7 @@ new_packages <- list_of_packages[!(list_of_packages %in% installed.packages()[,"
 if(length(new_packages)) install.packages(new_packages)
 lapply(list_of_packages, library, character.only = TRUE)
 
- 
+
 #####################################################################################
 # Function for selecting ggplot colors
 #####################################################################################
@@ -287,55 +287,64 @@ u_age_decr_fun <- function(male, age) {
   (0.9508566 + 0.0212126*male - 0.0002587*age - 0.0000332*age^2) - (0.9508566 + 0.0212126*male - 0.0002587*(age + v_cycle_year) - 0.0000332*(age + v_cycle_year)^2)
 }
 
+##############################################################################################
+# function for applying waning of the treatment effect
+##############################################################################################
+wane_fun <- function (x, y, wane_start, wane_end) {
+  wane_prop <- seq.int(0, 1, length.out = (wane_end - wane_start) +1)
+  x[(wane_start):(wane_end)] <- (1-wane_prop) * x[(wane_start):(wane_end)] + wane_prop * y[(wane_start):(wane_end)]
+  x[(1:t_horizon) > wane_end] <- y[(1:t_horizon) > wane_end]
+  return(x)
+}
 
 #####################################################################################
 # Function for plotting expected OS and PFS survival curves (1 figure)
 #####################################################################################
 plot_surv_fun <- function (trt_labs, ncyc_y, l_os, l_pfs = NULL) { 
   
-    # create lists and vectors of survival probabilities
-    if(!is.null(l_pfs)) {
-      v_mean_surv <- c(as.vector(sapply(l_os, rowMeans)),
+  # create lists and vectors of survival probabilities
+  if(!is.null(l_pfs)) {
+    v_mean_surv <- c(as.vector(sapply(l_os, rowMeans)),
                      as.vector(sapply(l_pfs, rowMeans))
-      )
-      l_surv <- c(l_os, l_pfs)
-    } else {
-      v_mean_surv <- as.vector(sapply(l_os, rowMeans))
-      l_surv <- l_os
-    }
-
-    # upper and lower bounds
-    ul <- sapply(l_surv, function (x) {
-      apply(x, 1, function (y) quantile(y, 0.975))
-    })
-    ul <- as.vector(ul)
-    ll <- sapply(l_surv, function (x) {
-      apply(x, 1, function (y) quantile(y, 0.025))
-    })
-    ll <- as.vector(ll)
-    
-    # create indices
-    if(!is.null(l_pfs)) {
-      curve_index <- rep(c(" Overall survival.", " Progression-free survival."), each = (length(l_os) * nrow(l_os[[1]])))
-      group_index <- rep(1:length(l_os), each = nrow(l_os[[1]]), times = 2)
-      group_index <- trt_labs[group_index]
-      time_index <- rep(0:(nrow(l_os[[1]])-1), length(l_os) * 2) / (ncyc_y / 12)
-    } else {
-      curve_index <- rep(" Overall survival.", length = (length(l_os) * nrow(l_os[[1]])))
-      group_index <- rep(1:length(l_os), each = nrow(l_os[[1]]))
-      group_index <- trt_labs[group_index]
-      time_index <- rep(0:(nrow(l_os[[1]])-1), length(l_os)) / (ncyc_y / 12)
-    }
-    
-    df_temp <- data.frame(
-      "time" = time_index, 
-      "surv" = v_mean_surv,
-      "group" = as.factor(group_index),
-      "curve" = as.factor(curve_index),
-      "ul" = ul,
-      "ll" = ll
     )
- 
+    l_surv <- c(l_os, l_pfs)
+  } else {
+    v_mean_surv <- as.vector(sapply(l_os, rowMeans))
+    l_surv <- l_os
+  }
+  
+  # upper and lower bounds
+  ul <- sapply(l_surv, function (x) {
+    apply(x, 1, function (y) quantile(y, 0.975))
+  })
+  ul <- as.vector(ul)
+  ll <- sapply(l_surv, function (x) {
+    apply(x, 1, function (y) quantile(y, 0.025))
+  })
+  ll <- as.vector(ll)
+  
+  # create indices
+  if(!is.null(l_pfs)) {
+    curve_index <- rep(c(" Overall survival.", " Progression-free survival."), each = (length(l_os) * nrow(l_os[[1]])))
+    group_index <- rep(1:length(l_os), each = nrow(l_os[[1]]), times = 2)
+    group_index <- trt_labs[group_index]
+    time_index <- rep(0:(nrow(l_os[[1]])-1), length(l_os) * 2) / (ncyc_y / 12)
+  } else {
+    curve_index <- rep(" Overall survival.", length = (length(l_os) * nrow(l_os[[1]])))
+    group_index <- rep(1:length(l_os), each = nrow(l_os[[1]]))
+    group_index <- trt_labs[group_index]
+    time_index <- rep(0:(nrow(l_os[[1]])-1), length(l_os)) / (ncyc_y / 12)
+  }
+  
+  df_temp <- data.frame(
+    "time" = time_index, 
+    "surv" = v_mean_surv,
+    "group" = as.factor(group_index),
+    "curve" = as.factor(curve_index),
+    "ul" = ul,
+    "ll" = ll
+  )
+  
   gg_color_hue <- function(n) {
     hues = seq(15, 375, length = n + 1)
     hcl(h = hues, l = 65, c = 100)[1:n]
@@ -359,8 +368,8 @@ plot_surv_fun <- function (trt_labs, ncyc_y, l_os, l_pfs = NULL) {
     theme(legend.position = "top", legend.title = element_blank()) +
     geom_ribbon(aes(ymin=ll,ymax=ul, fill = group), alpha=0.2,  colour = NA,  show.legend = F) +
     theme(axis.text.x = element_text(color="black")) +
-    theme(axis.text.y = element_text(color="black")) #+
-    #theme(text = element_text(size = 12)) 
+    theme(axis.text.y = element_text(color="black")) +
+    theme(text=element_text(size=18),  legend.text = element_text(size = 9))
 }    
 
 
@@ -370,7 +379,7 @@ plot_surv_fun <- function (trt_labs, ncyc_y, l_os, l_pfs = NULL) {
 plot_ce_scatter_fun <- function (incr_cost, incr_qaly, thresh, val = "£") {
   
   CE <- data.frame("Cost" = incr_cost, "QALY" =  incr_qaly)
-
+  
   ggplot(data=CE, aes(x=QALY, y=Cost)) + 
     #geom_hline(yintercept = 0, color = "darkgrey", size = 0.8) + 
     #geom_vline(xintercept = 0, color = "darkgrey", size = 0.8) +
@@ -386,8 +395,10 @@ plot_ce_scatter_fun <- function (incr_cost, incr_qaly, thresh, val = "£") {
     #ylim(c(0,45000)) + 
     #scale_y_continuous(breaks = limits = ) +
     theme(axis.text.x = element_text(color="black")) +
-    theme(axis.text.y = element_text(color="black")) #+
-    #theme(text = element_text(size = 12)) 
+    theme(axis.text.y = element_text(color="black")) +
+    theme(text=element_text(size=18))
+  #+
+  #theme(text = element_text(size = 12)) 
 }
 
 
@@ -440,7 +451,7 @@ font_size <- 14
 # run the probabilistic analysis for pembrolizumab+axitinib vs. sunitnib
 #####################################################################################
 pa_fun <- function(nsim, price = 1) {
-
+  
   n_sim <- nsim # number of simulations
   
   #####################################################################################
@@ -494,6 +505,9 @@ pa_fun <- function(nsim, price = 1) {
   # GP mortality per model cycle
   gp_mort_rate <- read.csv(here("data","mort_rate_weekly_uk_2019.csv"))  # load lifetable data
   gp_mort_rate_df <- data.frame(age = gp_mort_rate$Age, mort_r = gp_mort_rate$mort_r_f*(1-male)+gp_mort_rate$mort_r_m*male) # compute average conditional survival given proportion men/women
+  #gp_mort_rate_df <- rbind(gp_mort_rate_df, cbind(age = seq.int(101, 110, 1), mort_r = rep(gp_mort_rate_df$mort_r[nrow(gp_mort_rate_df)], 10)) )
+  # age_cycle <- data.frame(age = floor(age + v_cycle_year[1:(length(v_cycle_year)-1)]))
+  # gp_mort_rate_df <- merge(gp_mort_rate_df, age_cycle, by = "age", sort = FALSE)
   gp_mort_rate_df <- gp_mort_rate_df[gp_mort_rate_df$age>=floor(age),]
   age_cycle <- v_cycle_year[1:(length(v_cycle_year)-1)] + age
   gp_mort_r <- spline(gp_mort_rate_df$age, gp_mort_rate_df$mort_r, xout = age_cycle, ties = max)$y
@@ -574,7 +588,8 @@ pa_fun <- function(nsim, price = 1) {
   S_pfs_pembro <- replace(S_pfs_pembro, S_pfs_pembro > S_os_pembro, S_os_pembro[S_pfs_pembro > S_os_pembro])
   S_pfs_suni <- replace(S_pfs_suni, S_pfs_suni > S_os_suni, S_os_suni[S_pfs_suni > S_os_suni])
   
-
+  
+  
   #################################
   # Time on treatment
   #################################
@@ -607,6 +622,11 @@ pa_fun <- function(nsim, price = 1) {
   S_tot_pembro <- replace(S_tot_pembro, S_tot_pembro > S_os_pembro, S_os_pembro[S_tot_pembro > S_os_pembro])
   S_tot_axi <- replace(S_tot_axi, S_tot_axi > S_os_pembro, S_os_pembro[S_tot_axi > S_os_pembro])
   S_tot_suni <- replace(S_tot_suni, S_tot_suni > S_os_suni, S_os_suni[S_tot_suni > S_os_suni])
+  
+  
+  # Plot mean OS and PFS
+  #plot_surv_fun(S_os_pembro, S_os_suni, S_pfs_pembro, S_pfs_suni)
+  
   
   
   #####################################################################################
@@ -701,7 +721,10 @@ pa_fun <- function(nsim, price = 1) {
     S_tot_axi_wane <- replace(S_tot_axi, S_tot_axi > S_os_pembro_wane, S_os_pembro_wane[S_tot_axi > S_os_pembro_wane])
     
   }
-
+  
+  # Plot mean OS and PFS
+  #plot_surv_fun(S_os_pembro_wane, S_os_suni, S_pfs_pembro_wane, S_pfs_suni)
+  
   
   #####################################################################################
   # Model inputs
@@ -774,6 +797,7 @@ pa_fun <- function(nsim, price = 1) {
     six_week_admin =  rep(list(rep(c(1,0,0,0,0,0), n_cycles)[1:n_cycles]), n_sim)
     
   )
+  
   
   if (waning == TRUE) {
     inputs$S_os_pembro <- split(S_os_pembro_wane, rep(1:ncol(S_os_pembro_wane), each = nrow(S_os_pembro_wane))) 
@@ -946,7 +970,7 @@ pa_fun <- function(nsim, price = 1) {
     partSA_fun(lapply(inputs, `[[`, x))
   })
   results <- do.call(rbind, results)
-
+  
   return(list(v_cost1 = results$v_cost1, v_cost2 = results$v_cost2, v_ly1 = results$v_ly1, v_ly2 = results$v_ly2, v_qaly1 = results$v_qaly1, v_qaly2 = results$v_qaly2,
               l_os = list(m_os1 = S_os_pembro_wane, m_os2 = S_os_suni), l_pfs = list(m_pfs1 = S_pfs_pembro_wane, m_pfs2 = S_pfs_suni),
               m_ipd_os = ipd_os, m_ipd_pfs = ipd_pfs))

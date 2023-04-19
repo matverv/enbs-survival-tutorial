@@ -112,7 +112,7 @@ surv_evsi_fun <- function (
     
     ######### Overall survival only #########
     if(is.null(l_pfs)) {
-
+      
       arm_indic <- rep(1:length(l_os), 1, each = 2)         # trial arm indicator for each survival curve
       arms <- unique(arm_indic)                                  # number of trial arms
       l_start_os <- lapply(l_start_os, function (x) {x / cycle2month}) # convert start times to model time unit
@@ -135,7 +135,7 @@ surv_evsi_fun <- function (
       arms <- unique(arm_indic)                                       # number of trial arms
       l_start_os <- lapply(l_start_os, function (x) {x / cycle2month}) # convert start times to model time unit
       l_start_pfs <- lapply(l_start_pfs, function (x) {x / cycle2month}) # convert start times to model time unit
-
+      
       # generate survival data
       if(data_method == "interpolation") {
         summ_stat <- interpol_os_pfs_data_fun(l_os, l_pfs, l_start_os, l_start_pfs, l_dropout, l_enroll, t, seed, cycle2month) 
@@ -146,13 +146,13 @@ surv_evsi_fun <- function (
       } 
       
     }
-
+    
     ######### Compute EVSI using GAM #########
     if(evsi_method == "gam") {
       
       regr_model <- reg_mod_fun(summ_stat, arms, arm_indic)
       evsi <- gam_evsi_fun(v_inb, summ_stat, regr_model)
-  
+      
       # output for OS only
       if(is.null(l_pfs)) {
         
@@ -196,10 +196,10 @@ surv_evsi_fun <- function (
       if(is.null(l_os) == FALSE & is.null(l_pfs) == FALSE) {
         
         print(c("add. follow-up" = round(t*cycle2month, 0), "evsi" = round(evsi[[1]],3), 
-              "os_events" = round(mean(summ_stat[,1]) + mean(summ_stat[,3]), 0), "pfs_events" = round(mean(summ_stat[,5]) + mean(summ_stat[,7]), 0) ))
-  
-      return(c("add. follow-up" = round(t*cycle2month, 6), "evsi" = round(evsi[[1]],6), 
-               "os_events" = round(mean(summ_stat[,1]) + mean(summ_stat[,3]), 0), "pfs_events" = round(mean(summ_stat[,5]) + mean(summ_stat[,7]), 0) ))
+                "os_events" = round(mean(summ_stat[,1]) + mean(summ_stat[,3]), 0), "pfs_events" = round(mean(summ_stat[,5]) + mean(summ_stat[,7]), 0) ))
+        
+        return(c("add. follow-up" = round(t*cycle2month, 6), "evsi" = round(evsi[[1]],6), 
+                 "os_events" = round(mean(summ_stat[,1]) + mean(summ_stat[,3]), 0), "pfs_events" = round(mean(summ_stat[,5]) + mean(summ_stat[,7]), 0) ))
       }
       
     } # close mars calculation
@@ -265,7 +265,7 @@ gam_evsi_fun <- function (v_inb, summ_stat, regr_model) {
 # Function to define a GAM regression model
 ##############################################################################################
 reg_mod_fun <- function (summ_stat, arms, arm_indic) {
-    
+  
   var_names <- lapply(arms, function (x) {
     colnames(summ_stat[arm_indic == x])
   })
@@ -375,7 +375,7 @@ intersect_fun <- function (x, y, x2, y2, step) {
 # function for interpolating the EVSI estimates using asymptotic regression
 ####################################################################################
 evsi_ar_fun <- function (evsi, add_fu) {
-
+  
   # fit asymptotic regression to EVSI values
   df <- as.data.frame(cbind("y" = evsi[2,], "x" = evsi[1,]))
   ar_mod_evsi <- drm(y ~ x, data = df, fct = AR.3(fixed = c(NA, NA, NA)), pmodels = list(~1, ~1,~1))
@@ -386,11 +386,11 @@ evsi_ar_fun <- function (evsi, add_fu) {
   df <- as.data.frame(cbind("y" = evsi[3,], "x" = evsi[1,]))
   ar_mod_evsi_se <- drm(y ~ x, data = df, fct = EXD.3(fixed = c(NA, NA, NA)), pmodels = list(~1, ~1,~1)) #evsi[3,ncol(evsi)], evsi[3,1],
   evsi_ar$se <- predict(ar_mod_evsi_se, newdata = new_times)
-
+  
   # lower and upper bound for EVSI values
   evsi_ar$lower  <- evsi_ar$evsi + pmax(evsi_ar$se * qnorm(0.975), 0)
   evsi_ar$upper <- evsi_ar$evsi - evsi_ar$se * qnorm(0.975)
-
+  
   # OS events
   evsi_ar$os_events <- round(spline(evsi[1,], evsi[6,], xout = seq.int(min(add_fu), max(add_fu), 1))$y)
   evsi_ar$os_events_se <- round(spline(evsi[1,], evsi[7,], xout = seq.int(min(add_fu), max(add_fu), 1))$y, 3)
@@ -415,10 +415,10 @@ evsi_plot_fun <- function (evsi_ar, pevpi = 0) {
     theme(legend.position = "none") +
     ggtitle("") + scale_size(range=c(0.1, 2), guide="none") + 
     scale_x_continuous(breaks = seq(0,max(evsi_ar$time),12) ) + # , limits = c(min(add_fu),max(add_fu)) +
-
+    
     theme(axis.text.x = element_text(color="black")) +
     theme(axis.text.y = element_text(color="black")) +
-    #theme(text = element_text(size = 12)) +
+    theme(text=element_text(size=18)) +
     geom_ribbon(aes(ymin=lower,ymax=upper, fill = col[1]),alpha=0.2) + 
     if(pevpi>0) geom_hline(yintercept = pevpi, color = "black", linewidth = 0.8) 
 }
@@ -468,13 +468,13 @@ enbs_fun <- function (evsi_ar, v_inb, c_fix, c_var,  c_var_time = NULL, c_var_ev
   })
   df_evsi_temp <- apply(df_x_times_desc, 2, function (x) {evsi_ar$evsi * x})  # multiply adjusted decision relevance horizons with EVSI
   df_se_temp <- apply(df_x_times_desc, 2, function (x) {evsi_ar$se * x})  # multiply adjusted decision relevance horizons with SE
-
+  
   # mean EVSI adjusted for delay in reporting
   evsi_delay <- rowMeans(df_evsi_temp)  
   
   # SE due to uncertainty in GAM estimate
   se_gam_temp <- rowMeans(df_se_temp) 
-    
+  
   # SE due to uncertainty in reporting delay (time between end of follow-up and decision making)
   upper_temp <- apply(df_evsi_temp, 1, function (x) {quantile(x, 0.975) }) # upper range due to delay in reporting
   lower_temp <- apply(df_evsi_temp, 1, function (x) {quantile(x, 0.025) }) # lower range due to delay in reporting
@@ -487,7 +487,7 @@ enbs_fun <- function (evsi_ar, v_inb, c_fix, c_var,  c_var_time = NULL, c_var_ev
   
   # mean population EVSI
   evsi_pop <- evsi_delay * mean(inc_pop)
-
+  
   # SE for population EVSI
   upper_temp <- evsi_delay * max(inc_pop) 
   lower_temp <- evsi_delay * min(inc_pop)
@@ -516,7 +516,7 @@ enbs_fun <- function (evsi_ar, v_inb, c_fix, c_var,  c_var_time = NULL, c_var_ev
     c_trial_var <- cumsum(mean(c_var) * pnorm(c_var_event, evsi_ar$os_events, evsi_ar$os_events_se, lower.tail = F))
     c_trial_var_sigma <- (c_trial_upper - c_trial_lower) / (2 * qnorm(0.975))  # SE for variable costs
   }
-    
+  
   # ENBS for AWR 
   c_enbs_awr <- reversal * pop_evsi$evsi - c_trial_var
   c_enbs_awr_sigma <- sqrt((reversal * pop_evsi$se)^2 + c_trial_var_sigma^2)
@@ -600,9 +600,9 @@ enbs_fun <- function (evsi_ar, v_inb, c_fix, c_var,  c_var_time = NULL, c_var_ev
   anno2   <- deparse(bquote(paste(~ italic("t"^"*") == .(round(x_2,0)) )) )
   
   y_loc <- pmax((max(df_enbs$value) - min(df_enbs$value)),  max(df_enbs$value)) * 0.06 #(max(df_enbs$value) - min(df_enbs$value)) * 0.08
-
+  
   pmax((max(df_enbs$value) - min(df_enbs$value)),  max(df_enbs$value))
-
+  
   gg_color_hue <- function(n) {
     hues = seq(15, 375, length = n + 1)
     hcl(h = hues, l = 65, c = 100)[1:n]
@@ -622,16 +622,16 @@ enbs_fun <- function (evsi_ar, v_inb, c_fix, c_var,  c_var_time = NULL, c_var_ev
     #ylim(0,NA) +
     theme(axis.text.x = element_text(color="black")) +
     theme(axis.text.y = element_text(color="black")) +
-    #theme(text=element_text(size=18)) +
+    theme(text=element_text(size=18)) +
     geom_ribbon(aes(ymin=lower,ymax=upper, fill = group),alpha=0.2) +
     geom_hline(yintercept = 0, color = "black", linetype = "dotted", linewidth = 0.8) 
   
   if(x_1 < max(add_fu) & x_1 > 0 & y_1 > 0) {p <- p +
-    annotate("text", label = anno1, x = x_1, y = y_1 + y_loc, size = 4, parse = T, color = col[1]) +
+    annotate("text", label = anno1, x = x_1, y = y_1 + y_loc, size = 6, parse = T, color = col[1]) +
     geom_point(aes(x = x_1, y = y_1), colour = "black", size = 1)}
-
+  
   if(x_2 < max(add_fu) & x_2 > 0 & y_2 > 0) {p <- p +
-    annotate("text", label = anno2, x = x_2, y = y_2 + y_loc, size = 4, parse = T, color = col[2]) +
+    annotate("text", label = anno2, x = x_2, y = y_2 + y_loc, size = 6, parse = T, color = col[2]) +
     geom_point(aes(x = x_2, y = y_2), colour = "black", size = 1)}
   
   p
