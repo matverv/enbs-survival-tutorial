@@ -13,25 +13,24 @@ lapply(list_of_packages, library, character.only = TRUE)
 ##############################################################################################
 # Function for computing EVSI for overall survival
 ##############################################################################################
-evsi_os_fun <- function (v_inb, l_os, l_start_os, add_fu, ncyc_y, l_dropout=NULL, l_enroll=NULL, ...) {
+evsi_os_fun <- function (v_inb, l_os, l_atrisk_times_os, max_add_fu, ncyc_y, l_dropout=NULL, l_enroll=NULL, ...) {
   
   # stop conditions
   if(!is.numeric(v_inb)) {stop("The incremental net benefits is not a numeric vector.")}
-  if(!is.list(l_os)) {stop("Overall survival matrices is not stored in a list.")}
-  if(!is.list(l_start_os)) {stop("Vectors of start times for overall survival is not stored in a list.")}
-  if(!is.numeric(add_fu)) {stop("Additional follow-up times (in months) is not numeric.")}
-  if(length(add_fu) > 2) {stop("Additional follow-up times (in months) is not a range.")}
-  if(min(add_fu) < 1) {stop("Minimum additional follow-up time (in months) should be at least 1.")}
-  if(!is.null(l_enroll) & mean(unlist(l_start_os))>0) {stop("The list of enrollment rates should be NULL when the start times > 0.")}
+  if(!is.list(l_os)) {stop("Overall survival matrices are not stored in a list.")}
+  if(!is.list(l_atrisk_times_os)) {stop("Vectors of observed follow-up times for patients at risk for overall survival are not stored in a list.")}
+  if(!is.numeric(max_add_fu)) {stop("Maximum additional follow-up time (in months) is not numeric.")}
+  if(max_add_fu < 6) {stop("Maximum additional follow-up time (in months) should be at least 6.")}
+  if(!is.null(l_enroll) & mean(unlist(l_atrisk_times_os))>0) {stop("The list of enrollment rates should be NULL when the start times > 0.")}
   
   surv_evsi_fun(
-    v_inb = v_inb,                 # incremental net benefits
-    l_os = l_os,                   # overall survival (OS) probabilities over discrete model cycles for each treatment 
-    l_start_os = l_start_os,       # individual observed follow-up times for OS for each treatment
-    add_fu = add_fu_fun(add_fu),   # additional follow-up times in months
-    ncyc_y = ncyc_y,               # number of model cycles per year
-    l_dropout = l_dropout,         # random censoring (dropout) rates for each treatment
-    l_enroll = l_enroll,           # enrollment rates for each treatment (optional)
+    v_inb = v_inb,                          # incremental net benefits
+    l_os = l_os,                            # overall survival (OS) probabilities over discrete model cycles for each treatment 
+    l_atrisk_times_os = l_atrisk_times_os,  # individual observed follow-up times for OS for each treatment
+    add_fu = add_fu_fun(max_add_fu),        # additional follow-up times in months
+    ncyc_y = ncyc_y,                        # number of model cycles per year
+    l_dropout = l_dropout,                  # random censoring (dropout) rates for each treatment
+    l_enroll = l_enroll,                    # enrollment rates for each treatment (optional)
     ...
   )
 }
@@ -40,30 +39,28 @@ evsi_os_fun <- function (v_inb, l_os, l_start_os, add_fu, ncyc_y, l_dropout=NULL
 ##############################################################################################
 # Function for computing EVSI for overall survival and progression-free survival
 ##############################################################################################
-evsi_os_pfs_fun <- function (v_inb, l_os, l_pfs, l_start_os, l_start_pfs, add_fu, ncyc_y, l_dropout=NULL, l_enroll=NULL, ...) {
+evsi_os_pfs_fun <- function (v_inb, l_os, l_pfs, l_atrisk_times_os, l_atrisk_times_pfs, add_fu, ncyc_y, l_dropout=NULL, l_enroll=NULL, ...) {
   
   # stop conditions
-  if(!is.numeric(v_inb)) {stop("The incremental net benefits is not a numeric vector.")}
-  if(!is.list(l_os)) {stop("Overall survival matrices is not stored in a list.")}
-  if(!is.list(l_pfs)) {stop("Progression-free survival matrices is not stored in a list.")}
-  if(!is.list(l_start_os)) {stop("Vectors of start times for overall survival is not stored in a list.")}
-  if(!is.list(l_start_pfs)) {stop("Vectors of start times for progression-free survival is not stored in a list.")}
-  if(!is.numeric(add_fu)) {stop("Additional follow-up times (in months) is not numeric.")}
-  if(length(add_fu) > 2) {stop("Additional follow-up times (in months) is not a range.")}
-  if(min(add_fu) < 1) {stop("Minimum additional follow-up time (in months) should be at least 1.")}
-  if(!is.null(l_enroll) & mean(unlist(l_start_os))>0) {stop("The list of enrollment rates should be NULL when the start times > 0.")}
-  
+  if(!is.numeric(v_inb)) {stop("The incremental net benefits is not numeric.")}
+  if(!is.list(l_os)) {stop("Overall survival matrices are not stored in a list.")}
+  if(!is.list(l_pfs)) {stop("Progression-free survival matrices are not stored in a list.")}
+  if(!is.list(l_atrisk_times_os)) {stop("Vectors of observed follow-up times for patients at risk for overall survival are not stored in a list.")}
+  if(!is.list(l_atrisk_times_pfs)) {stop("Vectors of observed follow-up times for patients at risk for progression-free survival are not stored in a list.")}
+  if(!is.numeric(max_add_fu)) {stop("Maximum additional follow-up time (in months) is not numeric.")}
+  if(max_add_fu < 6) {stop("Maximum additional follow-up time (in months) should be at least 6.")}
+  if(!is.null(l_enroll) & mean(unlist(l_atrisk_times_os))>0) {stop("The list of enrollment rates should be NULL when the start times > 0.")}
   
   surv_evsi_fun(
-    v_inb = v_inb,                 # incremental net benefits
-    l_os = l_os,                   # overall survival (OS) probabilities over discrete model cycles for each treatment 
-    l_pfs = l_pfs,                 # progression-free survival (PFS) probabilities over discrete model cycles for each treatment 
-    l_start_os = l_start_os,       # individual observed follow-up times for OS for each treatment
-    l_start_pfs = l_start_pfs,     # individual observed follow-up times for PFS for each treatment
-    add_fu = add_fu_fun(add_fu),   # additional follow-up times in months
-    ncyc_y = ncyc_y,               # number of model cycles per year
-    l_dropout = l_dropout,         # random censoring (dropout) rates for each treatment
-    l_enroll = l_enroll,           # enrollment rates for each treatment (optional)
+    v_inb = v_inb,                                  # incremental net benefits
+    l_os = l_os,                                    # overall survival (OS) probabilities over discrete model cycles for each treatment 
+    l_pfs = l_pfs,                                  # progression-free survival (PFS) probabilities over discrete model cycles for each treatment 
+    l_atrisk_times_os = l_atrisk_times_os,          # individual observed follow-up times for OS for each treatment
+    l_atrisk_times_pfs = l_atrisk_times_pfs,        # individual observed follow-up times for PFS for each treatment
+    add_fu = add_fu_fun(max_add_fu),                # additional follow-up times in months
+    ncyc_y = ncyc_y,                                # number of model cycles per year
+    l_dropout = l_dropout,                          # random censoring (dropout) rates for each treatment
+    l_enroll = l_enroll,                            # enrollment rates for each treatment (optional)
     ...
   )
 }
@@ -71,16 +68,16 @@ evsi_os_pfs_fun <- function (v_inb, l_os, l_pfs, l_start_os, l_start_pfs, add_fu
 ##############################################################################################
 # Function for specifying a vector of evenly spaced additional follow-up times
 ##############################################################################################
-add_fu_fun <- function (add_fu) {
+add_fu_fun <- function (max_add_fu) {
   
-  add_fu <- add_fu
-  fu_range <- max(add_fu) - min(add_fu)
-  add_fu <- c(min(add_fu), 
-              min(add_fu) + (1/3) * fu_range,
-              min(add_fu) + (2/3) * fu_range,
-              max(add_fu))
-  add_fu <- round(add_fu)
-  return(add_fu)
+  add_fup <- c(2, max_add_fu)
+  fu_range <- max(add_fup) - min(add_fup)
+  add_fup <- c(min(add_fup), 
+              min(add_fup) + (1/3) * fu_range,
+              min(add_fup) + (2/3) * fu_range,
+              max(add_fup))
+  add_fup <- round(add_fup)
+  return(add_fup)
 }
 
 
@@ -91,8 +88,8 @@ surv_evsi_fun <- function (
     v_inb,                          # incremental net benefits
     l_os=NULL,                      # overall survival probabilities over discrete model cycles for each treatment 
     l_pfs=NULL,                     # progression-free survival probabilities over discrete model cycles for each treatment 
-    l_start_os=NULL,                # individual observed follow-up times for OS for each treatment
-    l_start_pfs=NULL,               # individual observed follow-up times for PFS for each treatment
+    l_atrisk_times_os=NULL,         # individual observed follow-up times for OS for each treatment
+    l_atrisk_times_pfs=NULL,        # individual observed follow-up times for PFS for each treatment
     add_fu,                         # additional follow-up times in months
     ncyc_y,                         # number of model cycles per year
     l_dropout = NULL,               # random censoring (dropout) rates for each treatment (optional)
@@ -115,34 +112,34 @@ surv_evsi_fun <- function (
       
       arm_indic <- rep(1:length(l_os), 1, each = 2)         # trial arm indicator for each survival curve
       arms <- unique(arm_indic)                                  # number of trial arms
-      l_start_os <- lapply(l_start_os, function (x) {x / cycle2month}) # convert start times to model time unit
+      l_atrisk_times_os <- lapply(l_atrisk_times_os, function (x) {x / cycle2month}) # convert start times to model time unit
       
       # generate survival data
       if(data_method == "interpolation") {
-        summ_stat <- interpol_os_data_fun(l_os, l_start_os, l_dropout, l_enroll, t, seed, cycle2month) 
+        summ_stat <- interpol_os_data_fun(l_os, l_atrisk_times_os, l_dropout, l_enroll, t, seed, cycle2month) 
       } 
       
       if(data_method == "discrete") {
-        summ_stat <- discrete_os_data_fun(l_os, l_start_os, l_dropout, l_enroll, t, seed, fast = fast, cycle2month)
+        summ_stat <- discrete_os_data_fun(l_os, l_atrisk_times_os, l_dropout, l_enroll, t, seed, fast = fast, cycle2month)
       } 
       
     } 
     
     ######### Overall survival and progression-free survival #########
-    if(is.null(l_os) == FALSE & is.null(l_pfs) == FALSE) { #& is.null(l_start_os) == FALSE
+    if(is.null(l_os) == FALSE & is.null(l_pfs) == FALSE) { #& is.null(l_atrisk_times_os) == FALSE
       
       arm_indic <- rep(1:length(l_os), 2, each = 2)              # trial arm indicator for each survival curve
       arms <- unique(arm_indic)                                       # number of trial arms
-      l_start_os <- lapply(l_start_os, function (x) {x / cycle2month}) # convert start times to model time unit
-      l_start_pfs <- lapply(l_start_pfs, function (x) {x / cycle2month}) # convert start times to model time unit
+      l_atrisk_times_os <- lapply(l_atrisk_times_os, function (x) {x / cycle2month}) # convert start times to model time unit
+      l_atrisk_times_pfs <- lapply(l_atrisk_times_pfs, function (x) {x / cycle2month}) # convert start times to model time unit
       
       # generate survival data
       if(data_method == "interpolation") {
-        summ_stat <- interpol_os_pfs_data_fun(l_os, l_pfs, l_start_os, l_start_pfs, l_dropout, l_enroll, t, seed, cycle2month) 
+        summ_stat <- interpol_os_pfs_data_fun(l_os, l_pfs, l_atrisk_times_os, l_atrisk_times_pfs, l_dropout, l_enroll, t, seed, cycle2month) 
       } 
       
       if(data_method == "discrete") {
-        summ_stat <- discrete_os_pfs_data_fun(l_os, l_pfs, l_start_os, l_start_pfs, l_dropout, l_enroll, t, seed, fast = fast, cycle2month)
+        summ_stat <- discrete_os_pfs_data_fun(l_os, l_pfs, l_atrisk_times_os, l_atrisk_times_pfs, l_dropout, l_enroll, t, seed, fast = fast, cycle2month)
       } 
       
     }
@@ -427,10 +424,10 @@ evsi_plot_fun <- function (evsi_ar, pevpi = 0) {
 #####################################################################################
 # Population Expected Net Benefit of Sampling
 #####################################################################################
-enbs_fun <- function (evsi_ar, v_inb, c_fix, c_var,  c_var_time = NULL, c_var_event = NULL, c_rev, t_lag, inc_pop, dec_th, dr_voi,  reversal=1) {
+enbs_fun <- function (evsi_ar, v_inb, c_fix, c_var,  c_var_time = NULL, c_var_event = NULL, c_rev, t_lag, inc_pop, prev_pop, dec_th, dr_voi,  reversal=1) {
   
   # stop conditions
-  if(dec_th<max(add_fu) | is.null(dec_th)) {stop("The decision relevance horizon must be equal or greater than the maximum additional follow-up time.")}
+  if(dec_th<max(evsi_ar[,1]) | is.null(dec_th)) {stop("The decision relevance horizon must be equal or greater than the maximum additional follow-up time.")}
   
   if(dr_voi>=1 | dr_voi<0 | is.null(dr_voi)) {stop("The annual discount rate is not below 1.")}
   
@@ -446,63 +443,72 @@ enbs_fun <- function (evsi_ar, v_inb, c_fix, c_var,  c_var_time = NULL, c_var_ev
   if(min(inc_pop)<0 | is.null(inc_pop)) {stop("Monthly incident population is not positive.")}
   if(length(inc_pop) > 2) {stop("Monthly incident population is not a range.")}
   
-  if(!exists("evsi_ar") | is.null(inc_pop)) {stop("The interpolated EVSI 'evsi_ar' must first be computed using the 'evsi_ar_fun' function.")}
+  if(min(prev_pop)<0 | is.null(inc_pop)) {stop("Total prevalent population is not positive.")}
+  if(length(prev_pop) > 2) {stop("Total prevalent population is not a range.")}
+  
+  if(!exists("evsi_ar") | is.null("evsi_ar")) {stop("The interpolated EVSI 'evsi_ar' must first be computed using the 'evsi_ar_fun' function.")}
   
   if(!is.null(c_var_time) & !is.null(c_var_event)) {stop("Only c_var_time or c_var_event can be specified, not both.")}
   
   # if no time or events are defined after which variable cost are incurred, set c_var_time = 0
   if(is.null(c_var_time) & is.null(c_var_event)) {c_var_time <- 0}
+
   
-  
-  ### Reporting delay (time between end of follow-up and decision making) ###
+  ### Time lag (time between end of follow-up and decision making) ###
   
   # vector of times for calculations
   x_times <- evsi_ar[,1] #seq.int(min(add_fu), max(add_fu), 1) # times until maximum follow-up
-  x_times_desc <- sort(x_times, decreasing = T) +  (dec_th - max(add_fu) - min(add_fu))
+  x_times_desc <- sort(x_times, decreasing = T) +  (dec_th - max(evsi_ar[,1]) - min(evsi_ar[,1]))
   
-  # EVSI adjusted for delay in reporting
+  # EVSI adjusted for time lag
   t_lag_sigma <- (max(t_lag) - min(t_lag)) / (2 * qnorm(0.975)) # SE for lag in reporting time
-  lag_temp <- rnorm(5000, mean(t_lag), t_lag_sigma) # sample reporting delay times
+  lag_temp <- round(rnorm(5000, mean(t_lag), t_lag_sigma)) # sample reporting delay times
   df_x_times_desc <-  sapply(lag_temp, function (x){ # adjust decision relevance horizons
-    x_times_desc - x 
+    pmax(x_times_desc - x, 0)
+    #x_times_desc - x
   })
   df_evsi_temp <- apply(df_x_times_desc, 2, function (x) {evsi_ar$evsi * x})  # multiply adjusted decision relevance horizons with EVSI
   df_se_temp <- apply(df_x_times_desc, 2, function (x) {evsi_ar$se * x})  # multiply adjusted decision relevance horizons with SE
   
   # mean EVSI adjusted for delay in reporting
-  evsi_delay <- rowMeans(df_evsi_temp)  
-  
+  evsi_delay <- rowMeans(df_evsi_temp) #rowMeans(df_x_times_desc) * evsi_ar$evsi 
+ 
   # SE due to uncertainty in GAM estimate
   se_gam_temp <- rowMeans(df_se_temp) 
   
-  # SE due to uncertainty in reporting delay (time between end of follow-up and decision making)
-  upper_temp <- apply(df_evsi_temp, 1, function (x) {quantile(x, 0.975) }) # upper range due to delay in reporting
-  lower_temp <- apply(df_evsi_temp, 1, function (x) {quantile(x, 0.025) }) # lower range due to delay in reporting
-  se_delay_temp <- (upper_temp - lower_temp) / (2 * qnorm(0.975)) # SE due to delayed reporting 
-  
+  # SE due to uncertainty in lag time (time between end of follow-up and decision making)
+  upper_temp <- apply(df_evsi_temp, 1, function (x) {quantile(x, 0.975) }) # upper range due to lag time
+  lower_temp <- apply(df_evsi_temp, 1, function (x) {quantile(x, 0.025) }) # lower range due to lag time
+  se_delay_temp <- (upper_temp - lower_temp) / (2 * qnorm(0.975)) # SE due to lag time
+
   # combine SE due to reporting delay with SE for GAM estimate of EVSI
-  se_delay <- sqrt(se_delay_temp^2 + se_gam_temp^2)  
+  se_delay <- sqrt(se_delay_temp^2 + se_gam_temp^2)
   
   ### Population EVSI ###
   
-  # mean population EVSI
-  evsi_pop <- evsi_delay * mean(inc_pop)
-  
-  # SE for population EVSI
+  # mean population EVSI (accounting for both incidence and prevalence)
+  evsi_pop <- evsi_delay * mean(inc_pop) + evsi_ar$evsi * mean(prev_pop) * rowMeans(df_x_times_desc)
+
+  # SE for incident population EVSI
   upper_temp <- evsi_delay * max(inc_pop) 
   lower_temp <- evsi_delay * min(inc_pop)
   se_pop <- (upper_temp - lower_temp) / (2 * qnorm(0.975)) 
   se_pop <-  sqrt(se_pop^2 + (se_delay * mean(inc_pop))^2)
   
+  # SE for incident + prevalent population EVSI
+  upper_temp <- evsi_ar$upper * max(prev_pop) * ifelse(rowMeans(df_x_times_desc)>0, 1, 0)
+  lower_temp <- evsi_ar$lower * min(prev_pop) * ifelse(rowMeans(df_x_times_desc)>0, 1, 0)
+  se_prev <- (upper_temp - lower_temp) / (2 * qnorm(0.975)) 
+  se_pop <-  sqrt(se_pop^2 + se_prev^2)
+  
   # dataframe with population EVSI and SE
   pop_evsi <- data.frame(times = x_times,
                          evsi = evsi_pop, 
                          se = se_pop) # overall SE accounting for uncertainty in incidence, delayed reporting and GAM estimator
-  
+
   ### ENBS AWR ###
   
   # variable trial costs
-  
   if(!is.null(c_var_time)) {
     c_trial_upper <- max(c_var) * pmax(0, x_times - c_var_time)
     c_trial_lower <- min(c_var) * pmax(0, x_times - c_var_time)
@@ -549,7 +555,7 @@ enbs_fun <- function (evsi_ar, v_inb, c_fix, c_var,  c_var_time = NULL, c_var_ev
   
   # cost due to withholding access
   c_wait <- mean(v_inb) * mean(inc_pop) * x_times
-  
+
   # ENBS for OIR 
   c_enbs_oir <- pop_evsi$evsi - c_trial_var - c_wait
   c_enbs_oir_sigma <- sqrt(pop_evsi$se^2 + c_trial_var_sigma^2)
@@ -626,11 +632,11 @@ enbs_fun <- function (evsi_ar, v_inb, c_fix, c_var,  c_var_time = NULL, c_var_ev
     geom_ribbon(aes(ymin=lower,ymax=upper, fill = group),alpha=0.2) +
     geom_hline(yintercept = 0, color = "black", linetype = "dotted", linewidth = 0.8) 
   
-  if(x_1 < max(add_fu) & x_1 > 0 & y_1 > 0) {p <- p +
+  if(x_1 < max(evsi_ar[,1]) & x_1 > 0 & y_1 > 0) {p <- p +
     annotate("text", label = anno1, x = x_1, y = y_1 + y_loc, size = 6, parse = T, color = col[1]) +
     geom_point(aes(x = x_1, y = y_1), colour = "black", size = 1)}
   
-  if(x_2 < max(add_fu) & x_2 > 0 & y_2 > 0) {p <- p +
+  if(x_2 < max(evsi_ar[,1]) & x_2 > 0 & y_2 > 0) {p <- p +
     annotate("text", label = anno2, x = x_2, y = y_2 + y_loc, size = 6, parse = T, color = col[2]) +
     geom_point(aes(x = x_2, y = y_2), colour = "black", size = 1)}
   

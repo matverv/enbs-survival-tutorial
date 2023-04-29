@@ -15,7 +15,7 @@ library(here); source(here("R", "ce_model_functions.R"))
 
 # Run a probabilistic analysis of size "K"
 set.seed(123)         # set the seed for reproducibility
-K <- 5e3              # number of simulations
+K <- 2e3              # number of simulations
 l_pa <- pa_fun(K)     # run the probabilistic analysis
 
 # OS and PFS probabilities
@@ -65,10 +65,10 @@ evppi_os_pfs <- surv_evppi_fun(v_inb, l_os, l_pfs)
 ### Settings
 
 # start (truncation) times for OS and PFS in months
-v_start_os1 <- subset(l_pa$m_ipd_os, treat == 1 & event == 0, select = tt)$tt
-v_start_os2 <- subset(l_pa$m_ipd_os, treat == 2 & event == 0, select = tt)$tt
-v_start_pfs1 <- subset(l_pa$m_ipd_pfs, treat == 1 & event == 0, select = tt)$tt
-v_start_pfs2 <- subset(l_pa$m_ipd_pfs, treat == 2 & event == 0, select = tt)$tt
+v_atrisk_times_os1 <- subset(l_pa$m_ipd_os, treat == 1 & event == 0, select = tt)$tt
+v_atrisk_times_os2 <- subset(l_pa$m_ipd_os, treat == 2 & event == 0, select = tt)$tt
+v_atrisk_times_pfs1 <- subset(l_pa$m_ipd_pfs, treat == 1 & event == 0, select = tt)$tt
+v_atrisk_times_pfs2 <- subset(l_pa$m_ipd_pfs, treat == 2 & event == 0, select = tt)$tt
 
 # specify Gamma distribution hyperparameters for the monthly trial dropout rates
 dropout1 <- 15; trisk1 <- sum(subset(l_pa$m_ipd_os, treat == 1, select = tt)$tt) # observed dropouts and time at risk in months for treatment 1
@@ -77,25 +77,25 @@ l_dropout <- list(c(dropout1, trisk1),
                   c(dropout2, trisk2))
 
 # remove the number of trial drop-outs from the patients at risk assuming even spacing 
-l_start_os <- list(split_fun(v_start_os1, dropout1),    # list of start times for the patients at risk for OS
-                   split_fun(v_start_os2, dropout2))
-l_start_pfs <- list(split_fun(v_start_pfs1, dropout1),  # list of start times for the patients at risk for PFS
-                    split_fun(v_start_pfs2, dropout2))
+l_atrisk_times_os <- list(split_fun(v_atrisk_times_os1, dropout1),    # list of observed follow-up times for the patients at risk for OS
+                   split_fun(v_atrisk_times_os2, dropout2))
+l_atrisk_times_pfs <- list(split_fun(v_atrisk_times_pfs1, dropout1),  # list of observed follow-up times for the patients at risk for PFS
+                    split_fun(v_atrisk_times_pfs2, dropout2))
 
-# range for the additional follow-up times in months
-add_fu <- c(1, 60)
+# maximum additional follow-up time in months
+max_add_fu <- 60
 
 ### Computations
 
 # compute EVSI for OS and interpolate the EVSI estimates across different follow-up times using asymptotic regression
-df_evsi_os <- evsi_os_fun(v_inb, l_os, l_start_os, add_fu, ncyc_y, l_dropout, l_enroll = NULL)  
+df_evsi_os <- evsi_os_fun(v_inb, l_os, l_atrisk_times_os, max_add_fu, ncyc_y, l_dropout, l_enroll = NULL)  
 evsi_plot_fun(df_evsi_os, evppi_os$evppi) # plot the EVSI estimates
 
 # compute EVSI for OS + PFS and interpolate the EVSI estimates across different follow-up times using asymptotic regression
 # note: the EVSI code for OS + PFS  may take several times longer to run than for OS only
 compute_evsi_os_pfs <- "No" # set to "Yes" to compute EVSI for OS + PFS 
 if(compute_evsi_os_pfs == "Yes") {
-  df_evsi_os_pfs <- evsi_os_pfs_fun(v_inb, l_os, l_pfs, l_start_os, l_start_pfs, add_fu, ncyc_y,  l_dropout, l_enroll = NULL)
+  df_evsi_os_pfs <- evsi_os_pfs_fun(v_inb, l_os, l_pfs, l_atrisk_times_os, l_atrisk_times_pfs, max_add_fu, ncyc_y,  l_dropout, l_enroll = NULL)
   evsi_plot_fun(df_evsi_os_pfs, evppi_os_pfs$evppi) # plot the EVSI estimates
 }
 
@@ -115,20 +115,23 @@ c_fix <- c(0,0) # fixed trial setup costs
 d2p <- 0.7271 * 0.7                                    # exchange rate and purchasing power parities US dollar to GBP in 2021
 c_site <- 5000 * 124                                   # monthly site management costs for 124 sites
 c_database <- 2500                                     # monthly database management costs
-c_fu_pat <- 313 * length(unlist(l_start_os))           # monthly follow-up costs for 670 patients at risk 
+c_fu_pat <- 313 * length(unlist(l_atrisk_times_os))           # monthly follow-up costs for 670 patients at risk 
 c_var_mu <- (sum(c_site, c_database, c_fu_pat) * d2p)  # mean total monthly costs (NHB)
 c_var <- c(c_var_mu * 0.75, c_var_mu * 1.25)           # range for the monthly costs
 
 # range for the decision reversal costs
-c_rev <- c(0,0)
+c_rev <- c(0, 0)
 
 # monthly incident population 
 inc_pop <- ((12600 * 0.8 * 0.75 * 0.44) / 12)  # estimated from company submission in TA650
 inc_pop <- c(inc_pop * 0.95, inc_pop * 1.05)   # range for the monthly incidence
 
+# prevalent "catch-up" population
+prev_pop <- c(100, 150)
+
 # other settings
-t_lag <- c(-3,3)  # range for the time between the end of follow-up and decision making in months
-dec_th <- 120     # time horizon in months
+t_lag <- c(3, 6)  # range for the time between the end of follow-up and decision making in months
+dec_th <- 60     # time horizon in months
 dr_voi <- 0.035   # annual discount rate
 reversal <- 1     # probability that an approval decision can be reversed
 
@@ -141,7 +144,8 @@ enbs_fun(df_evsi_os, v_inb,  # replace "df_evsi_os" with "df_evsi_os_pfs" (if ca
          c_var_event = add_events,
          c_rev = c_rev / thresh,
          t_lag = t_lag,
-         inc_pop = inc_pop, 
+         inc_pop = inc_pop,
+         prev_pop = prev_pop,
          dec_th = dec_th, 
          dr_voi = dr_voi, 
          reversal = reversal)
