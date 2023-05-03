@@ -104,7 +104,7 @@ surv_evsi_fun <- function (
   if(is.null(seed)){seed <- 1}
  
   cycle2month <- 12 / ncyc_y
-  
+
   m_evsi <- sapply(add_fu / cycle2month, function (t) { 
     
     ######### Overall survival only #########
@@ -218,11 +218,16 @@ reg_mod_fun <- function (summ_stat, arms, arm_indic) {
   var_names <- lapply(arms, function (x) {
     colnames(summ_stat[arm_indic == x])
   })
+  
   regr_model <- lapply(var_names, function (x) {
     paste("te(", paste(x,collapse = ","), ",k=4)", sep = "")
   })
-  # regr_model <- paste(unlist(regr_model), collapse = "+")
   
+  regr_model <- lapply(2:length(regr_model), function (x) {
+    paste(unlist(c(regr_model[[1]], regr_model[[x]])), collapse = "+")
+  })
+  
+  return(regr_model)
 }
 
 
@@ -231,14 +236,20 @@ reg_mod_fun <- function (summ_stat, arms, arm_indic) {
 ##############################################################################################
 gam_evsi_fun <- function (m_nb, summ_stat, regr_model, arm_indic) {
   
-  print(paste("Estimating posterior NB"))
+  print(paste("Estimating posterior INB"))
     
+  # matrix of incremental net benefits
+  m_inb <- matrix(m_nb[,2:ncol(m_nb)] - m_nb[,1], ncol = (ncol(m_nb)-1) )
 
+  # number of GAM parameter samples for computation of SE and CI
+  nsim_gam <- 2000 
+  
   ### GAM regression
   l_gam_est <- lapply(1:length(regr_model), function (i) { 
 
-    f <- update(formula(m_nb[,i] ~ .), formula(paste(".~", regr_model[[i]])))
-    mod <- gam(f, data = data.frame(summ_stat)) #summ_stat[,arm_indic==i]
+    f <- update(formula(m_inb[,i] ~ .), formula(paste(".~", regr_model[[i]])))
+    #mod <- gam(f, data = data.frame(summ_stat)) #summ_stat[,arm_indic==i]
+    mod <- bam(f, data = data.frame(summ_stat), discrete=F) #summ_stat[,arm_indic==i]
     
     # extract fitted values                  
     g_hat <- mod$fitted
@@ -256,7 +267,7 @@ gam_evsi_fun <- function (m_nb, summ_stat, regr_model, arm_indic) {
     
     # sample from the parameter distributions
     set.seed(123)
-    parameter_draws <- t(mvrnorm(2000, beta, v_cov))
+    parameter_draws <- t(mvrnorm(nsim_gam, beta, v_cov))
     
     # # from these draws, calculate draws from fitted values
     fitted_draws <- Xstar %*% parameter_draws
@@ -267,24 +278,27 @@ gam_evsi_fun <- function (m_nb, summ_stat, regr_model, arm_indic) {
 
   # extract g_hat and fitted draws
   g_hat <- sapply(l_gam_est, function (x) x[[1]])
-  fitted_draws <- lapply(l_gam_est, function (x) x[[2]])
+  g_hat <- cbind(0, g_hat)
+  fitted_draws <- c(list(matrix(0, nrow = nrow(g_hat), ncol = nsim_gam)),
+                    lapply(l_gam_est, function (x) x[[2]]) )
   rm(l_gam_est)
 
   ### compute evsi
-  v_nb_max <- apply(g_hat, 1, function (x) max(x)) # compute the pairwise maximum
-  evsi <- mean(v_nb_max) - max(colMeans(g_hat)) 
+  v_inb_max <- apply(g_hat, 1, function (x) max(x)) # maximum INB with sample information
+  evsi <- mean(v_inb_max) - max(colMeans(g_hat)) 
   
   ### compute standard error
 
   # compute EVSI for each sample
-  v_nb_max <- colMeans(do.call(pmax, fitted_draws)) # compute the pairwise maximum
-  v_max_means <- do.call(colMeans, fitted_draws)
+  v_nb_max <- colMeans(do.call(pmax, fitted_draws)) # maximum INB with sample information
+  v_max_means <- lapply(fitted_draws, colMeans)
+  v_max_means <- do.call(pmax, v_max_means) 
   v_evsi <- v_nb_max - v_max_means
 
   # standard error and ci
   se <- sd(v_evsi)
-  ci <- c(pmax(evsi - se * qnorm(0.975), 0), evsi + se * qnorm(0.975))
-  #ci <- quantile(v_evsi, c(0.025, 0.975))
+  #ci <- c(pmax(evsi - se * qnorm(0.975), 0), evsi + se * qnorm(0.975))
+  ci <- quantile(v_evsi, c(0.025, 0.975))
   
   return(list("evsi"= round(evsi,6), "se"=round(se,6), "lower" = round(ci[1],6), "upper" = round(ci[2],6) ))
 }
@@ -361,20 +375,6 @@ surv_evppi_fun <- function (m_nb, l_os=NULL, l_pfs=NULL) {
 }
 
 
-##############################################################################################
-# Function to define a GAM regression model
-##############################################################################################
-reg_mod_fun <- function (summ_stat, arms, arm_indic) {
-  
-  var_names <- lapply(arms, function (x) {
-    colnames(summ_stat[arm_indic == x])
-  })
-  regr_model <- lapply(var_names, function (x) {
-    paste("te(", paste(x,collapse = ","), ",k=4)", sep = "")
-  })
-  # regr_model <- paste(unlist(regr_model), collapse = "+")
-  
-}
 
 
 #####################################################################################
@@ -411,26 +411,27 @@ intersect_fun <- function (x, y, x2, y2, step) {
 ####################################################################################
 evsi_ar_fun <- function (evsi, add_fu) {
  
-  # fit asymptotic regression to EVSI values
+  library(drc)
+  
+  # fit asymptotic regression to EVSI point estimates
   df <- as.data.frame(cbind("y" = evsi[2,], "x" = evsi[1,]))
   ar_mod_evsi <- drm(y ~ x, data = df, fct = AR.3(fixed = c(NA, NA, NA)), pmodels = list(~1, ~1,~1))
   new_times <- data.frame("x" = seq.int(min(add_fu), max(add_fu), 1)) #seq.int(min(add_fu)
   evsi_ar <- data.frame("times" = new_times, "evsi" = predict(ar_mod_evsi, newdata = new_times), group = 1)
   
+  # fit asymptotic regression to lower limit
+  df <- as.data.frame(cbind("y" = evsi[4,], "x" = evsi[1,]))
+  ar_mod_lower <- drm(y ~ x, data = df, fct = AR.3(fixed = c(NA, NA, NA)), pmodels = list(~1, ~1,~1)) #ar_mod_evsi$fit$par[3]
+  evsi_ar$lower <- predict(ar_mod_lower, newdata = new_times)
+
+  # fit asymptotic regression to upper limit
+  df <- as.data.frame(cbind("y" = evsi[5,], "x" = evsi[1,]))
+  ar_mod_upper <- drm(y ~ x, data = df, fct = AR.3(fixed = c(NA, NA, NA)), pmodels = list(~1, ~1,~1)) #ar_mod_evsi$fit$par[3]
+  evsi_ar$upper <- predict(ar_mod_upper, newdata = new_times)
   
-  # fit exponential decay model to SE for EVSI values
+  # fit spline model to SE for EVSI values
   df <- as.data.frame(cbind("y" = evsi[3,], "x" = evsi[1,]))
-  ar_mod_evsi_se <- drm(y ~ x, data = df, fct = EXD.3(fixed = c(NA, NA, NA)), pmodels = list(~1, ~1,~1)) #evsi[3,ncol(evsi)], evsi[3,1],
-  evsi_ar$se <- predict(ar_mod_evsi_se, newdata = new_times)
-  
-  # fit interpolating splines to SE for EVSI values
-  #evsi_ar$se <- spline(x = evsi[1,], y = evsi[3,], xout = new_times$x, method ="hyman")$y
-  
-  # lower and upper bound for EVSI values
-  evsi_ar$lower  <- pmax(evsi_ar$evsi - evsi_ar$se * qnorm(0.975), 0)
-  evsi_ar$upper <- evsi_ar$evsi + evsi_ar$se * qnorm(0.975)
-  # evsi_ar$lower <- spline(evsi[1,], evsi[4,], xout = new_times$x)$y
-  # evsi_ar$upper  <- spline(evsi[1,], evsi[5,], xout = new_times$x)$y
+  evsi_ar$se <- spline(x = df$x, y =df$y, xout =  new_times$x)$y
   
   # OS events
   evsi_ar$os_events <- round(spline(evsi[1,], evsi[6,], xout = seq.int(min(add_fu), max(add_fu), 1))$y)

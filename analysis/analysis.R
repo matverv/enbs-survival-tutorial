@@ -97,7 +97,7 @@ df_evsi_os <- evsi_os_fun(m_nb, l_os, l_atrisk_times_os, max_add_fu, ncyc_y, l_d
 evsi_plot_fun(df_evsi_os, evppi_os$evppi) # plot the EVSI estimates
 
 # compute EVSI for OS + PFS and interpolate the EVSI estimates across different follow-up times using asymptotic regression
-# note: the computation time for OS + PFS is about twice as long compared to OS only
+# note: the computation time for OS + PFS is about 2-3 times longer than for OS only
 df_evsi_os_pfs <- evsi_os_pfs_fun(m_nb, l_os, l_pfs, l_atrisk_times_os, l_atrisk_times_pfs, max_add_fu, ncyc_y,  l_dropout, l_enroll = NULL)
 evsi_plot_fun(df_evsi_os_pfs, evppi_os_pfs$evppi) # plot the EVSI estimates
 
@@ -133,8 +133,8 @@ inc_pop <- c(inc_pop * 0.95, inc_pop * 1.05)   # range for the monthly incidence
 prev_pop <- c(100, 200) # assumption
 
 # other settings
-t_lag <- c(3, 6)  # range for the lag time between the end of follow-up and decision making in months
-dec_th <- 72      # time horizon in months
+t_lag <- c(3, 9)  # range for the lag time between the end of follow-up and decision making in months
+dec_th <- 60      # time horizon in months
 dr_voi <- 0.035   # annual discount rate
 reversal <- 1     # probability that an approval decision can be reversed
 
