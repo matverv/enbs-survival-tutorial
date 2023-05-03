@@ -85,7 +85,7 @@ add_fu_fun <- function (max_add_fu) {
 # function for generating survival data and computing EVSI for OS and/or PFS
 ##############################################################################################
 surv_evsi_fun <- function (
-    m_nb,                          # net benefits
+    m_nb,                           # net benefits
     l_os=NULL,                      # overall survival probabilities over discrete model cycles for each treatment 
     l_pfs=NULL,                     # progression-free survival probabilities over discrete model cycles for each treatment 
     l_atrisk_times_os=NULL,         # individual observed follow-up times for OS for each treatment
@@ -446,23 +446,47 @@ evsi_ar_fun <- function (evsi, add_fu) {
 ####################################################################################
 # function for plotting the EVSI
 ####################################################################################
-evsi_plot_fun <- function (evsi_ar, pevpi = 0) {
+evsi_plot_fun <- function (evsi_ar, pevpi = NULL) {
   
-  # plot EVSI predictions
-  ggplot(data=evsi_ar, aes(x=time, y=evsi)) +
-    theme_light() + 
-    geom_line(aes(color = col[1]), linewidth = 0.5) + # aes(color=group),
-    xlab("Additional follow-up (months)") +
-    ylab("Per Patient EVSI") +
-    theme(legend.position = "none") +
-    ggtitle("") + scale_size(range=c(0.1, 2), guide="none") + 
-    scale_x_continuous(breaks = seq(0,max(evsi_ar$time),12) ) + # , limits = c(min(add_fu),max(add_fu)) +
+  evsi_ar$group <- "EVSI"
+  
+  if(!is.null(pevpi)) {
+    # create a dataframe with partial EVPI values
+    pevpi_temp <- evsi_ar
+    pevpi_temp$evsi <- pevpi$evppi
+    pevpi_temp$upper <- pevpi$upper
+    pevpi_temp$lower <- pevpi$lower
+    pevpi_temp$group <- "Partial EVPI"
     
+    # merge the EVSI and partial EVPI dataframes
+    df_evsi_temp <- rbind(evsi_ar, pevpi_temp)
+    
+  } else {
+    df_evsi_temp <- evsi_ar
+  }
+    
+  # select colors
+  gg_color_hue <- function(n) {
+    hues = seq(15, 375, length = n + 1)
+    hcl(h = hues, l = 65, c = 100)[1:n]
+  }
+  col <- gg_color_hue(2) 
+  
+  # plot the EVSI and partial EVPI + confidence bounds
+  ggplot(data=df_evsi_temp, aes(x=time, y=evsi, group = group)) +
+    theme_light() + 
+    geom_line(aes(color = group), linewidth = 0.5) + # aes(color=group),
+    xlab("Additional follow-up (months)") +
+    ylab("Population ENBS") +
+    theme(legend.position = "top", legend.title = element_blank()) +
+    ggtitle("") + scale_size(range=c(0.1, 2), guide="none") + 
+    scale_x_continuous(breaks = seq(0,max(df_evsi_temp$time),12) ) + # , limits = c(min(add_fu),max(add_fu)) +
+    #ylim(0,NA) +
     theme(axis.text.x = element_text(color="black")) +
     theme(axis.text.y = element_text(color="black")) +
     theme(text=element_text(size=18)) +
-    geom_ribbon(aes(ymin=lower,ymax=upper, fill = col[1]),alpha=0.2) + 
-    if(pevpi>0) geom_hline(yintercept = pevpi, color = "black", linewidth = 0.8) 
+    geom_ribbon(aes(ymin=lower,ymax=upper, fill = group),alpha=0.2) #+
+    #geom_hline(yintercept = 0, color = "black", linetype = "dotted", linewidth = 0.8) 
 }
 
 

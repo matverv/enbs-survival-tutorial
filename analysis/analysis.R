@@ -7,7 +7,8 @@ rm(list=ls(all=TRUE))	# clear workspace
 # Probabilistic Analysis
 #####################################################################################
 
-# note: standard care should always be the first element in lists (OS, PFS) or the first column in matrices (net benefits)
+# note: standard care should always be the first element in the lists of OS and PFS probabilities (l_os and l_pfs)
+# and the first column in the matrix  of net benefits (m_nb)
 
 # install and/or load R package "here" and the cost-effectiveness model functions
 list_of_packages <- c("here")
@@ -17,7 +18,7 @@ library(here); source(here("R", "ce_model_functions.R"))
 
 # Run a probabilistic analysis of size "K"
 set.seed(123)         # set the seed for reproducibility
-K <- 2e3              # number of simulations
+K <- 5e3              # number of simulations
 l_pa <- pa_fun(K)     # run the probabilistic analysis
 
 # OS and PFS probabilities
@@ -44,12 +45,11 @@ plot_surv_fun(trt_labs, ncyc_y, l_os, l_pfs)            # plot OS and PFS
 plot_ce_scatter_fun(incr_cost, incr_qaly, thresh, "£")
 
 
-
 #####################################################################################
 # Value of Information Analysis
 #####################################################################################
 
-# load functions
+# load data-simulation and EVSI functions
 source(here("R", "data_gen_functions.R")); source(here("R", "evsi_functions.R"))
 
 #################################################
@@ -94,12 +94,12 @@ max_add_fu <- 60
 
 # compute EVSI for OS and interpolate the EVSI estimates across different follow-up times using asymptotic regression
 df_evsi_os <- evsi_os_fun(m_nb, l_os, l_atrisk_times_os, max_add_fu, ncyc_y, l_dropout, l_enroll = NULL)  
-evsi_plot_fun(df_evsi_os, evppi_os$evppi) # plot the EVSI estimates
+evsi_plot_fun(df_evsi_os, evppi_os) # plot the EVSI estimates
 
 # compute EVSI for OS + PFS and interpolate the EVSI estimates across different follow-up times using asymptotic regression
 # note: the computation time for OS + PFS is about 2-3 times longer than for OS only
 df_evsi_os_pfs <- evsi_os_pfs_fun(m_nb, l_os, l_pfs, l_atrisk_times_os, l_atrisk_times_pfs, max_add_fu, ncyc_y,  l_dropout, l_enroll = NULL)
-evsi_plot_fun(df_evsi_os_pfs, evppi_os_pfs$evppi) # plot the EVSI estimates
+evsi_plot_fun(df_evsi_os_pfs, evppi_os_pfs) # plot the EVSI estimates
 
 
 ##################################################
@@ -140,7 +140,7 @@ reversal <- 1     # probability that an approval decision can be reversed
 
 #####  compute the ENBS #####
 # costs are converted to health units by dividing by <thresh>
-enbs_fun(df_evsi_os_pfs, m_nb,  # replace "df_evsi_os" with "df_evsi_os_pfs" (if calculated) to compute the ENBS for OS + PFS
+enbs_fun(df_evsi_os, m_nb,  # replace "df_evsi_os" with "df_evsi_os_pfs" (if calculated) to compute the ENBS for OS + PFS
          c_fix = c_fix / thresh, 
          c_var = c_var / thresh,
          c_var_time = NULL,
