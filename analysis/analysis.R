@@ -133,8 +133,8 @@ inc_pop <- c(inc_pop * 0.95, inc_pop * 1.05)   # range for the monthly incidence
 prev_pop <- c(100, 200) # assumption
 
 # other settings
-t_lag <- c(3, 9)  # range for the lag time between the end of follow-up and decision making in months
-dec_th <- 60      # time horizon in months
+t_lag <- c(3, 6)  # range for the lag time between the end of follow-up and decision making in months
+dec_th <- 60      # time horizon at t_1 in months (will be reduced by the additional follow-up + lag time)
 dr_voi <- 0.035   # annual discount rate
 reversal <- 1     # probability that an approval decision can be reversed
 

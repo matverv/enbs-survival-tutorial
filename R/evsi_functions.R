@@ -153,24 +153,44 @@ surv_evsi_fun <- function (
       # output for OS only
       if(is.null(l_pfs)) {
         
+        # generate the sequence of column positions for the treatment arms
+        arm_cols <- seq(from = 1, to = length(arms) * 2, by = 2)
+        
+        # extract the os_events and os_events_se for all treatment arms
+        os_events <- sum(colMeans(summ_stat[, arm_cols]))
+        os_events_se <- sd(colMeans(summ_stat[, arm_cols]))
+        
         print(c("add. follow-up" = round(t*cycle2month,4), "evsi" = round(evsi[[1]],3), "se" = round(evsi[[2]],3), "lower" = round(evsi[[3]],3), "upper" = round(evsi[[4]],3), 
-                "os_events" = round(mean(summ_stat[,1]) + mean(summ_stat[,3]), 0),  "os_events_se" = round(sd(summ_stat[,1] + summ_stat[,3]), 3)  ))
+                "os_events" = round(os_events, 0),  "os_events_se" = round(os_events_se, 3)  ))
         
         return(c("add. follow-up" = round(t*cycle2month,8), "evsi" = round(evsi[[1]],8), "se" = round(evsi[[2]],8), "lower" = round(evsi[[3]],8), "upper" = round(evsi[[4]],8), 
-                 "os_events" = round(mean(summ_stat[,1]) + mean(summ_stat[,3]), 0),  "os_events_se" = round(sd(summ_stat[,1] + summ_stat[,3]), 8) ))
+                 "os_events" = round(os_events, 0),  "os_events_se" = round(os_events_se, 8) )) 
+        
       }
       
       # output for OS + PFS 
       if(is.null(l_os) == FALSE & is.null(l_pfs) == FALSE) {
         
+        # generate the sequence of column positions for the treatment arms
+        arm_cols <- seq(from = 1, to = length(arms) * 2, by = 2)
+        
+        # extract the os_events and os_events_se for all treatment arms
+        os_events <- sum(colMeans(summ_stat[, arm_cols]))
+        os_events_se <- sd(colMeans(summ_stat[, arm_cols]))
+        
+        # extract the pfs_events and pfs_events_se for all treatment arms
+        pfs_events <- sum(colMeans(summ_stat[, arm_cols + length(arms) * 2]))
+        pfs_events_se <- sd(colMeans(summ_stat[, arm_cols + length(arms) * 2]))
+        
         print(c("add. follow-up" = round(t*cycle2month,3), "evsi" = round(evsi[[1]],3), "se" = round(evsi[[2]],3), "lower" = round(evsi[[3]],3), "upper" = round(evsi[[4]],3), 
-                "os_events" = round(mean(summ_stat[,1]) + mean(summ_stat[,3]), 0),  "os_events_se" = round(sd(summ_stat[,1] + summ_stat[,3]), 3),
-                "pfs_events" = round(mean(summ_stat[,5]) + mean(summ_stat[,7]), 0),  "pfs_events_se" = round(sd(summ_stat[,5] + summ_stat[,7]), 3) ))
+                "os_events" = round(os_events, 0),  "os_events_se" = round(os_events_se, 3),
+                "pfs_events" = round(pfs_events, 0),  "pfs_events_se" = round(pfs_events_se, 3) ))
         
         return(c("add. follow-up" = round(t*cycle2month,6), "evsi" = round(evsi[[1]],8), "se" = round(evsi[[2]],8), "lower" = round(evsi[[3]],8), "upper" = round(evsi[[4]],8), 
-                 "os_events" = round(mean(summ_stat[,1]) + mean(summ_stat[,3]), 0),  "os_events_se" = round(sd(summ_stat[,1] + summ_stat[,3]), 8), 
-                 "pfs_events" = round(mean(summ_stat[,5]) + mean(summ_stat[,7]), 0),  "pfs_events_se" = round(sd(summ_stat[,5] + summ_stat[,7]), 8) ))
-      }
+                 "os_events" = round(os_events, 0),  "os_events_se" = round(os_events_se, 8), 
+                 "pfs_events" = round(pfs_events, 0),  "pfs_events_se" = round(pfs_events_se, 8) ))
+
+        }
       
     } # close gam calculation
     
@@ -297,8 +317,8 @@ gam_evsi_fun <- function (m_nb, summ_stat, regr_model, arm_indic) {
 
   # standard error and ci
   se <- sd(v_evsi)
-  #ci <- c(pmax(evsi - se * qnorm(0.975), 0), evsi + se * qnorm(0.975))
   ci <- quantile(v_evsi, c(0.025, 0.975))
+  #ci <- c(pmax(evsi - se * qnorm(0.975), 0), evsi + se * qnorm(0.975))
   
   return(list("evsi"= round(evsi,6), "se"=round(se,6), "lower" = round(ci[1],6), "upper" = round(ci[2],6) ))
 }
@@ -375,10 +395,8 @@ surv_evppi_fun <- function (m_nb, l_os=NULL, l_pfs=NULL) {
 }
 
 
-
-
 #####################################################################################
-# Function for selecting evenly spaced out elements in a vector
+# Function for removing evenly spaced out elements from an ordered vector
 #####################################################################################
 split_fun <- function (times, n) {
   
@@ -437,6 +455,12 @@ evsi_ar_fun <- function (evsi, add_fu) {
   evsi_ar$os_events <- round(spline(evsi[1,], evsi[6,], xout = seq.int(min(add_fu), max(add_fu), 1))$y)
   evsi_ar$os_events_se <- round(spline(evsi[1,], evsi[7,], xout = seq.int(min(add_fu), max(add_fu), 1))$y, 3)
   
+  # PFS events
+  if(nrow(evsi) > 7) {
+    evsi_ar$pfs_events <- round(spline(evsi[1,], evsi[8,], xout = seq.int(min(add_fu), max(add_fu), 1))$y)
+    evsi_ar$pfs_events_se <- round(spline(evsi[1,], evsi[9,], xout = seq.int(min(add_fu), max(add_fu), 1))$y, 3)
+  }
+  
   colnames(evsi_ar)[1] <- "time"
   
   return(evsi_ar)
@@ -451,6 +475,7 @@ evsi_plot_fun <- function (evsi_ar, pevpi = NULL) {
   evsi_ar$group <- "EVSI"
   
   if(!is.null(pevpi)) {
+    
     # create a dataframe with partial EVPI values
     pevpi_temp <- evsi_ar
     pevpi_temp$evsi <- pevpi$evppi
@@ -477,7 +502,7 @@ evsi_plot_fun <- function (evsi_ar, pevpi = NULL) {
     theme_light() + 
     geom_line(aes(color = group), linewidth = 0.5) + # aes(color=group),
     xlab("Additional follow-up (months)") +
-    ylab("Population ENBS") +
+    ylab("Per Patient Net Benefit") +
     theme(legend.position = "top", legend.title = element_blank()) +
     ggtitle("") + scale_size(range=c(0.1, 2), guide="none") + 
     scale_x_continuous(breaks = seq(0,max(df_evsi_temp$time),12) ) + # , limits = c(min(add_fu),max(add_fu)) +
