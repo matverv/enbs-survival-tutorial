@@ -7,6 +7,8 @@ rm(list=ls(all=TRUE))	# clear workspace
 # Probabilistic Analysis
 #####################################################################################
 
+# note: standard care should always be the first element in lists (OS, PFS) or the first column in matrices (net benefits)
+
 # install and/or load R package "here" and the cost-effectiveness model functions
 list_of_packages <- c("here")
 new_packages <- list_of_packages[!(list_of_packages %in% installed.packages()[,"Package"])]
@@ -19,25 +21,28 @@ K <- 2e3              # number of simulations
 l_pa <- pa_fun(K)     # run the probabilistic analysis
 
 # OS and PFS probabilities
-l_os <- l_pa$l_os    # OS probabilities
-l_pfs <- l_pa$l_pfs  # PFS probabilities
+l_os <- l_pa$l_os    # OS probabilities (first element should be OS for standard care)
+l_pfs <- l_pa$l_pfs  # PFS probabilities (first element should be PFS for standard care)
 
 # incremental net benefits
-thresh <- 3e4                                 # opportunity cost/willingness to pay threshold 
-incr_cost <- l_pa$v_cost1 - l_pa$v_cost2      # incremental costs
-incr_qaly <- l_pa$v_qaly1 - l_pa$v_qaly2      # incremental QALYs
-v_inb <- (incr_qaly)  - (incr_cost) / thresh  # incremental net health benefits
+thresh <- 3e4                                        # opportunity cost/willingness to pay threshold 
+incr_cost <- l_pa$v_cost2 - l_pa$v_cost1             # incremental costs
+incr_qaly <- l_pa$v_qaly2 - l_pa$v_qaly1             # incremental QALYs
+m_nb <- cbind(l_pa$v_qaly1  - l_pa$v_cost1 / thresh, # net health benefits (first column should be NB for standard care)
+              l_pa$v_qaly2  - l_pa$v_cost2 / thresh) 
+
+
+# Probabilistic ICER
+paste("ICER = £", round(mean(incr_cost) / mean(incr_qaly)), " per QALY gained", sep = "")
 
 # Mean OS and PFS curves plot
-trt_labs <- c("Pembrolizumab + Axitinib", "Sunitinib")  # treatment labels
+trt_labs <- c("Sunitinib", "Pembrolizumab + Axitinib" )  # treatment labels
 ncyc_y <- 52                                            # number of model cycles per year
 plot_surv_fun(trt_labs, ncyc_y, l_os, l_pfs)            # plot OS and PFS
 
 # Cost-effectiveness scatter plot
 plot_ce_scatter_fun(incr_cost, incr_qaly, thresh, "£")
 
-# Probabilistic ICER
-paste("ICER = £", round(mean(incr_cost) / mean(incr_qaly)), " per QALY gained", sep = "")
 
 
 #####################################################################################
@@ -52,11 +57,11 @@ source(here("R", "data_gen_functions.R")); source(here("R", "evsi_functions.R"))
 #################################################
 
 # Expected Value of Perfect Information
-evpi <- mean(pmax(v_inb, 0)) - mean(v_inb); evpi
+evpi <- mean(apply(m_nb, 1, max)) - max(colMeans(m_nb)); evpi
 
 # Expected Value of Partial Perfect Information
-evppi_os <- surv_evppi_fun(v_inb, l_os)
-evppi_os_pfs <- surv_evppi_fun(v_inb, l_os, l_pfs)
+evppi_os <- surv_evppi_fun(m_nb, l_os)
+evppi_os_pfs <- surv_evppi_fun(m_nb, l_os, l_pfs)
 
 ##################################################
 # Expected Value of Sample Information
@@ -71,8 +76,8 @@ v_atrisk_times_pfs1 <- subset(l_pa$m_ipd_pfs, treat == 1 & event == 0, select = 
 v_atrisk_times_pfs2 <- subset(l_pa$m_ipd_pfs, treat == 2 & event == 0, select = tt)$tt
 
 # specify Gamma distribution hyperparameters for the monthly trial dropout rates
-dropout1 <- 15; trisk1 <- sum(subset(l_pa$m_ipd_os, treat == 1, select = tt)$tt) # observed dropouts and time at risk in months for treatment 1
-dropout2 <- 20; trisk2 <- sum(subset(l_pa$m_ipd_os, treat == 2, select = tt)$tt) # observed dropouts and time at risk in months for treatment 2
+dropout1 <- 20; trisk1 <- sum(subset(l_pa$m_ipd_os, treat == 1, select = tt)$tt) # observed dropouts and time at risk in months for treatment 1
+dropout2 <- 15; trisk2 <- sum(subset(l_pa$m_ipd_os, treat == 2, select = tt)$tt) # observed dropouts and time at risk in months for treatment 2
 l_dropout <- list(c(dropout1, trisk1),
                   c(dropout2, trisk2))
 
@@ -88,16 +93,14 @@ max_add_fu <- 60
 ### Computations
 
 # compute EVSI for OS and interpolate the EVSI estimates across different follow-up times using asymptotic regression
-df_evsi_os <- evsi_os_fun(v_inb, l_os, l_atrisk_times_os, max_add_fu, ncyc_y, l_dropout, l_enroll = NULL)  
+df_evsi_os <- evsi_os_fun(m_nb, l_os, l_atrisk_times_os, max_add_fu, ncyc_y, l_dropout, l_enroll = NULL)  
 evsi_plot_fun(df_evsi_os, evppi_os$evppi) # plot the EVSI estimates
 
 # compute EVSI for OS + PFS and interpolate the EVSI estimates across different follow-up times using asymptotic regression
-# note: the EVSI code for OS + PFS  may take several times longer to run than for OS only
-compute_evsi_os_pfs <- "No" # set to "Yes" to compute EVSI for OS + PFS 
-if(compute_evsi_os_pfs == "Yes") {
-  df_evsi_os_pfs <- evsi_os_pfs_fun(v_inb, l_os, l_pfs, l_atrisk_times_os, l_atrisk_times_pfs, max_add_fu, ncyc_y,  l_dropout, l_enroll = NULL)
-  evsi_plot_fun(df_evsi_os_pfs, evppi_os_pfs$evppi) # plot the EVSI estimates
-}
+# note: the computation time for OS + PFS is about twice as long compared to OS only
+df_evsi_os_pfs <- evsi_os_pfs_fun(m_nb, l_os, l_pfs, l_atrisk_times_os, l_atrisk_times_pfs, max_add_fu, ncyc_y,  l_dropout, l_enroll = NULL)
+evsi_plot_fun(df_evsi_os_pfs, evppi_os_pfs$evppi) # plot the EVSI estimates
+
 
 ##################################################
 # Expected Net Benefit of Sampling
@@ -115,7 +118,7 @@ c_fix <- c(0,0) # fixed trial setup costs
 d2p <- 0.7271 * 0.7                                    # exchange rate and purchasing power parities US dollar to GBP in 2021
 c_site <- 5000 * 124                                   # monthly site management costs for 124 sites
 c_database <- 2500                                     # monthly database management costs
-c_fu_pat <- 313 * length(unlist(l_atrisk_times_os))           # monthly follow-up costs for 670 patients at risk 
+c_fu_pat <- 313 * length(unlist(l_atrisk_times_os))    # monthly follow-up costs for 670 patients at risk 
 c_var_mu <- (sum(c_site, c_database, c_fu_pat) * d2p)  # mean total monthly costs (NHB)
 c_var <- c(c_var_mu * 0.75, c_var_mu * 1.25)           # range for the monthly costs
 
@@ -127,17 +130,17 @@ inc_pop <- ((12600 * 0.8 * 0.75 * 0.44) / 12)  # estimated from company submissi
 inc_pop <- c(inc_pop * 0.95, inc_pop * 1.05)   # range for the monthly incidence
 
 # prevalent "catch-up" population
-prev_pop <- c(100, 150)
+prev_pop <- c(100, 200) # assumption
 
 # other settings
-t_lag <- c(3, 6)  # range for the time between the end of follow-up and decision making in months
-dec_th <- 60     # time horizon in months
+t_lag <- c(3, 6)  # range for the lag time between the end of follow-up and decision making in months
+dec_th <- 72      # time horizon in months
 dr_voi <- 0.035   # annual discount rate
 reversal <- 1     # probability that an approval decision can be reversed
 
 #####  compute the ENBS #####
 # costs are converted to health units by dividing by <thresh>
-enbs_fun(df_evsi_os, v_inb,  # replace "df_evsi_os" with "df_evsi_os_pfs" (if calculated) to compute the ENBS for OS + PFS
+enbs_fun(df_evsi_os_pfs, m_nb,  # replace "df_evsi_os" with "df_evsi_os_pfs" (if calculated) to compute the ENBS for OS + PFS
          c_fix = c_fix / thresh, 
          c_var = c_var / thresh,
          c_var_time = NULL,

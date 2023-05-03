@@ -818,69 +818,69 @@ pa_fun <- function(nsim, price = 1) {
            #################################
            
            # on treatment costs
-           c_pembro_tr1 <- S_tot_pembro * three_week_admin * (c_simple_chemo1 + c_pembro*price * dose1_pembro)
-           c_axi_tr1 <- S_tot_axi * four_week_admin * (c_oral_chemo + c_axi * dose1_axi)
+           c_pembro_tr2 <- S_tot_pembro * three_week_admin * (c_simple_chemo1 + c_pembro*price * dose1_pembro)
+           c_axi_tr2 <- S_tot_axi * four_week_admin * (c_oral_chemo + c_axi * dose1_axi)
            
            # PFS costs
-           c_pfs_tr1 <- c(c_week_pfs0, S_pfs_pembro[2:n_cycles] * c_week_pfs)
+           c_pfs_tr2 <- c(c_week_pfs0, S_pfs_pembro[2:n_cycles] * c_week_pfs)
            
            # PPS costs
-           c_pps_tr1 <- (S_os_pembro - S_pfs_pembro) * c_week_pps
+           c_pps_tr2 <- (S_os_pembro - S_pfs_pembro) * c_week_pps
            
            # subsequent treatment costs
-           c_subs_tr1 <- c(0, S_pfs_pembro[1:(length(S_pfs_pembro)-1)] - S_pfs_pembro[2:length(S_pfs_pembro)]) * c_subs_tr_pembro
+           c_subs_tr2 <- c(0, S_pfs_pembro[1:(length(S_pfs_pembro)-1)] - S_pfs_pembro[2:length(S_pfs_pembro)]) * c_subs_tr_pembro
            
            # adverse events costs
-           c_ae_tr1 <- c(c_ae_pembro, rep(0, n_cycles-1))
+           c_ae_tr2 <- c(c_ae_pembro, rep(0, n_cycles-1))
            
            # terminal care costs
-           c_terminal_tr1 <- c(0, S_os_pembro[1:(length(S_os_pembro)-1)] - S_os_pembro[2:length(S_os_pembro)]) * c_terminal
+           c_terminal_tr2 <- c(0, S_os_pembro[1:(length(S_os_pembro)-1)] - S_os_pembro[2:length(S_os_pembro)]) * c_terminal
            
            # vector of total undiscounted costs
-           v_tot_cost_tr1 <- c_pembro_tr1 + c_axi_tr1 + c_pfs_tr1 + c_pps_tr1 + c_subs_tr1 + c_ae_tr1 + c_terminal_tr1
+           v_tot_cost_tr2 <- c_pembro_tr2 + c_axi_tr2 + c_pfs_tr2 + c_pps_tr2 + c_subs_tr2 + c_ae_tr2 + c_terminal_tr2
            
            # sum of total discounted costs
-           cost_tr1 <- v_tot_cost_tr1 %*% v_dr_c 
+           cost_tr2 <- v_tot_cost_tr2 %*% v_dr_c 
            
            #################################
            # Costs sunitinib
            #################################
            
            # on treatment costs
-           c_suni_tr2 <- S_tot_suni * six_week_admin * (c_oral_chemo + c_suni * dose1_suni)
+           c_suni_tr1 <- S_tot_suni * six_week_admin * (c_oral_chemo + c_suni * dose1_suni)
            
            # PFS costs
-           c_pfs_tr2 <- c(c_week_pfs0, S_pfs_suni[2:n_cycles] * c_week_pfs)
+           c_pfs_tr1 <- c(c_week_pfs0, S_pfs_suni[2:n_cycles] * c_week_pfs)
            
            # PPS costs
-           c_pps_tr2 <- (S_os_suni - S_pfs_suni) * c_week_pps
+           c_pps_tr1 <- (S_os_suni - S_pfs_suni) * c_week_pps
            
            # subsequent treatment costs
-           c_subs_tr2 <- c(0, S_pfs_suni[1:(length(S_pfs_suni)-1)] - S_pfs_suni[2:length(S_pfs_suni)]) * c_subs_tr_suni
+           c_subs_tr1 <- c(0, S_pfs_suni[1:(length(S_pfs_suni)-1)] - S_pfs_suni[2:length(S_pfs_suni)]) * c_subs_tr_suni
            
            # adverse events costs
-           c_ae_tr2 <- c(c_ae_suni, rep(0, n_cycles-1))
+           c_ae_tr1 <- c(c_ae_suni, rep(0, n_cycles-1))
            
            # terminal care costs
-           c_terminal_tr2 <- c(0, S_os_suni[1:(length(S_os_suni)-1)] - S_os_suni[2:length(S_os_suni)]) * c_terminal
+           c_terminal_tr1 <- c(0, S_os_suni[1:(length(S_os_suni)-1)] - S_os_suni[2:length(S_os_suni)]) * c_terminal
            
            # vector of total undiscounted costs
-           v_tot_cost_tr2 <- c_suni_tr2 + c_pfs_tr2 + c_pps_tr2 + c_subs_tr2 +  c_ae_tr2 + c_terminal_tr1
+           v_tot_cost_tr1 <- c_suni_tr1 + c_pfs_tr1 + c_pps_tr1 + c_subs_tr1 +  c_ae_tr1 + c_terminal_tr2
            
            # sum of total discounted costs
-           cost_tr2 <- v_tot_cost_tr2 %*% v_dr_c
+           cost_tr1 <- v_tot_cost_tr1 %*% v_dr_c
            
            #################################
            # Life years pembrolizumab-axitinib
            #################################
            
-           ly_tr1 <- v_dr_e %*% S_os_pembro  * (1/year2week)
+           ly_tr2 <- v_dr_e %*% S_os_pembro  * (1/year2week)
            
            #################################
            # Life years sunitinib
            #################################
            
-           ly_tr2 <- v_dr_e %*% S_os_suni  * (1/year2week)
+           ly_tr1 <- v_dr_e %*% S_os_suni  * (1/year2week)
            
            #################################
            # QALYs pembrolizumab-axitinib
@@ -909,10 +909,10 @@ pa_fun <- function(nsim, price = 1) {
            u_ttd_360_pembro <- ttd_360_pembro * u_ttd_360_
            
            # vector of total undiscounted QALYs
-           v_tot_qaly_tr1 <- u_ttd_0_29_pembro + u_ttd_30_89_pembro + u_ttd_90_179_pembro + u_ttd_180_359_pembro + u_ttd_360_pembro #- (u_age_decr_fun(male, age) * S_os_pembro)
+           v_tot_qaly_tr2 <- u_ttd_0_29_pembro + u_ttd_30_89_pembro + u_ttd_90_179_pembro + u_ttd_180_359_pembro + u_ttd_360_pembro #- (u_age_decr_fun(male, age) * S_os_pembro)
            
            # sum of total discounted QALYs
-           qaly_tr1 <- v_tot_qaly_tr1 %*% v_dr_e * (1/year2week) - du_ae
+           qaly_tr2 <- v_tot_qaly_tr2 %*% v_dr_e * (1/year2week) - du_ae
            
            #################################
            # QALYs sunitinib
@@ -941,10 +941,10 @@ pa_fun <- function(nsim, price = 1) {
            u_ttd_360_suni <- ttd_360_suni * u_ttd_360_
            
            # vector of total undiscounted QALYs
-           v_tot_qaly_tr2 <- u_ttd_0_29_suni + u_ttd_30_89_suni + u_ttd_90_179_suni + u_ttd_180_359_suni + u_ttd_360_suni # - (u_age_decr_fun(male, age) * S_os_suni)
+           v_tot_qaly_tr1 <- u_ttd_0_29_suni + u_ttd_30_89_suni + u_ttd_90_179_suni + u_ttd_180_359_suni + u_ttd_360_suni # - (u_age_decr_fun(male, age) * S_os_suni)
            
            # sum of total discounted QALYs
-           qaly_tr2 <- v_tot_qaly_tr2 %*% v_dr_e * (1/year2week) - du_ae
+           qaly_tr1 <- v_tot_qaly_tr1 %*% v_dr_e * (1/year2week) - du_ae
            
            #################################
            # store results in dataframe
@@ -961,7 +961,9 @@ pa_fun <- function(nsim, price = 1) {
   
   # convert IPD from weekly times to months
   ipd_os$tt <- ipd_os$tt / year2week * month2year
+  ipd_os$treat <- ifelse(ipd_os$treat == 1, 2, 1)
   ipd_pfs$tt <- ipd_pfs$tt / year2week * month2year
+  ipd_os$treat <- ifelse(ipd_pfs$treat == 1, 2, 1)
   
   #####################################################################################
   # run the PartSA model for each parameter sample
@@ -972,7 +974,7 @@ pa_fun <- function(nsim, price = 1) {
   results <- do.call(rbind, results)
   
   return(list(v_cost1 = results$v_cost1, v_cost2 = results$v_cost2, v_ly1 = results$v_ly1, v_ly2 = results$v_ly2, v_qaly1 = results$v_qaly1, v_qaly2 = results$v_qaly2,
-              l_os = list(m_os1 = S_os_pembro_wane, m_os2 = S_os_suni), l_pfs = list(m_pfs1 = S_pfs_pembro_wane, m_pfs2 = S_pfs_suni),
+              l_os = list(m_os1 = S_os_suni, m_os2 = S_os_pembro_wane), l_pfs = list(m_pfs1 = S_pfs_suni, m_pfs2 = S_pfs_pembro_wane),
               m_ipd_os = ipd_os, m_ipd_pfs = ipd_pfs))
   
 } # end pa_mod_fun

@@ -13,10 +13,10 @@ lapply(list_of_packages, library, character.only = TRUE)
 ##############################################################################################
 # Function for computing EVSI for overall survival
 ##############################################################################################
-evsi_os_fun <- function (v_inb, l_os, l_atrisk_times_os, max_add_fu, ncyc_y, l_dropout=NULL, l_enroll=NULL, ...) {
+evsi_os_fun <- function (m_nb, l_os, l_atrisk_times_os, max_add_fu, ncyc_y, l_dropout=NULL, l_enroll=NULL, ...) {
   
   # stop conditions
-  if(!is.numeric(v_inb)) {stop("The incremental net benefits is not a numeric vector.")}
+  if(!is.numeric(m_nb)) {stop("The net benefits is not a numeric vector.")}
   if(!is.list(l_os)) {stop("Overall survival matrices are not stored in a list.")}
   if(!is.list(l_atrisk_times_os)) {stop("Vectors of observed follow-up times for patients at risk for overall survival are not stored in a list.")}
   if(!is.numeric(max_add_fu)) {stop("Maximum additional follow-up time (in months) is not numeric.")}
@@ -24,7 +24,7 @@ evsi_os_fun <- function (v_inb, l_os, l_atrisk_times_os, max_add_fu, ncyc_y, l_d
   if(!is.null(l_enroll) & mean(unlist(l_atrisk_times_os))>0) {stop("The list of enrollment rates should be NULL when the start times > 0.")}
   
   surv_evsi_fun(
-    v_inb = v_inb,                          # incremental net benefits
+    m_nb = m_nb,                            # net benefits
     l_os = l_os,                            # overall survival (OS) probabilities over discrete model cycles for each treatment 
     l_atrisk_times_os = l_atrisk_times_os,  # individual observed follow-up times for OS for each treatment
     add_fu = add_fu_fun(max_add_fu),        # additional follow-up times in months
@@ -39,10 +39,10 @@ evsi_os_fun <- function (v_inb, l_os, l_atrisk_times_os, max_add_fu, ncyc_y, l_d
 ##############################################################################################
 # Function for computing EVSI for overall survival and progression-free survival
 ##############################################################################################
-evsi_os_pfs_fun <- function (v_inb, l_os, l_pfs, l_atrisk_times_os, l_atrisk_times_pfs, add_fu, ncyc_y, l_dropout=NULL, l_enroll=NULL, ...) {
+evsi_os_pfs_fun <- function (m_nb, l_os, l_pfs, l_atrisk_times_os, l_atrisk_times_pfs, add_fu, ncyc_y, l_dropout=NULL, l_enroll=NULL, ...) {
   
   # stop conditions
-  if(!is.numeric(v_inb)) {stop("The incremental net benefits is not numeric.")}
+  if(!is.numeric(m_nb)) {stop("The net benefits is not numeric.")}
   if(!is.list(l_os)) {stop("Overall survival matrices are not stored in a list.")}
   if(!is.list(l_pfs)) {stop("Progression-free survival matrices are not stored in a list.")}
   if(!is.list(l_atrisk_times_os)) {stop("Vectors of observed follow-up times for patients at risk for overall survival are not stored in a list.")}
@@ -52,7 +52,7 @@ evsi_os_pfs_fun <- function (v_inb, l_os, l_pfs, l_atrisk_times_os, l_atrisk_tim
   if(!is.null(l_enroll) & mean(unlist(l_atrisk_times_os))>0) {stop("The list of enrollment rates should be NULL when the start times > 0.")}
   
   surv_evsi_fun(
-    v_inb = v_inb,                                  # incremental net benefits
+    m_nb = m_nb,                                  # net benefits
     l_os = l_os,                                    # overall survival (OS) probabilities over discrete model cycles for each treatment 
     l_pfs = l_pfs,                                  # progression-free survival (PFS) probabilities over discrete model cycles for each treatment 
     l_atrisk_times_os = l_atrisk_times_os,          # individual observed follow-up times for OS for each treatment
@@ -85,7 +85,7 @@ add_fu_fun <- function (max_add_fu) {
 # function for generating survival data and computing EVSI for OS and/or PFS
 ##############################################################################################
 surv_evsi_fun <- function (
-    v_inb,                          # incremental net benefits
+    m_nb,                          # net benefits
     l_os=NULL,                      # overall survival probabilities over discrete model cycles for each treatment 
     l_pfs=NULL,                     # progression-free survival probabilities over discrete model cycles for each treatment 
     l_atrisk_times_os=NULL,         # individual observed follow-up times for OS for each treatment
@@ -102,7 +102,7 @@ surv_evsi_fun <- function (
   
   #if(!exists("seed")){seed <- 1}
   if(is.null(seed)){seed <- 1}
-  
+ 
   cycle2month <- 12 / ncyc_y
   
   m_evsi <- sapply(add_fu / cycle2month, function (t) { 
@@ -110,7 +110,7 @@ surv_evsi_fun <- function (
     ######### Overall survival only #########
     if(is.null(l_pfs)) {
       
-      arm_indic <- rep(1:length(l_os), 1, each = 2)         # trial arm indicator for each survival curve
+      arm_indic <- rep(1:length(l_os), 1, each = 2)              # trial arm indicator for each survival curve
       arms <- unique(arm_indic)                                  # number of trial arms
       l_atrisk_times_os <- lapply(l_atrisk_times_os, function (x) {x / cycle2month}) # convert start times to model time unit
       
@@ -118,7 +118,7 @@ surv_evsi_fun <- function (
       if(data_method == "interpolation") {
         summ_stat <- interpol_os_data_fun(l_os, l_atrisk_times_os, l_dropout, l_enroll, t, seed, cycle2month) 
       } 
-      
+     
       if(data_method == "discrete") {
         summ_stat <- discrete_os_data_fun(l_os, l_atrisk_times_os, l_dropout, l_enroll, t, seed, fast = fast, cycle2month)
       } 
@@ -141,14 +141,14 @@ surv_evsi_fun <- function (
       if(data_method == "discrete") {
         summ_stat <- discrete_os_pfs_data_fun(l_os, l_pfs, l_atrisk_times_os, l_atrisk_times_pfs, l_dropout, l_enroll, t, seed, fast = fast, cycle2month)
       } 
-      
+   
     }
-    
+ 
     ######### Compute EVSI using GAM #########
     if(evsi_method == "gam") {
       
       regr_model <- reg_mod_fun(summ_stat, arms, arm_indic)
-      evsi <- gam_evsi_fun(v_inb, summ_stat, regr_model)
+      evsi <- gam_evsi_fun(m_nb, summ_stat, regr_model, arm_indic)
       
       # output for OS only
       if(is.null(l_pfs)) {
@@ -178,7 +178,7 @@ surv_evsi_fun <- function (
     ######### Compute EVSI using MARS #########
     if(evsi_method == "mars") {
       
-      evsi <- mars_evsi_fun(v_inb, summ_stat)
+      evsi <- mars_evsi_fun(m_nb, summ_stat, arm_indic)
       
       # output for OS only
       if(is.null(l_pfs)) {
@@ -211,54 +211,6 @@ surv_evsi_fun <- function (
 
 
 ##############################################################################################
-# Function for computing EVSI using GAM
-##############################################################################################
-gam_evsi_fun <- function (v_inb, summ_stat, regr_model) {
-  
-  print(paste("Estimating posterior INB"))
-  
-  f <- update(formula(v_inb ~ .), formula(paste(".~", regr_model)))
-  #mod <- bam(f, data = data.frame(summ_stat), discrete=F)
-  mod <- gam(f, data = data.frame(summ_stat))
-  
-  # extract fitted values                  
-  g_hat <- mod$fitted
-  
-  # compute EVSI
-  evsi <- sum(abs(g_hat[g_hat<0]))/length(v_inb)
-  
-  ### compute standard errors
-  
-  # extract the basis function values
-  Xstar <- model.matrix(mod)
-  
-  # extract coefficients
-  beta <- mod$coef
-  
-  # covariance matrix
-  v_cov <- vcov(mod)
-  
-  # sample from the parameter distributions
-  set.seed(123)
-  parameter_draws <- t(mvrnorm(2000, beta, v_cov))
-  
-  # from these draws, calculate draws from fitted values
-  fitted_draws <- Xstar %*% parameter_draws
-  
-  # compute EVSI for each sample
-  evsi_samples <- apply(fitted_draws, 2, function (x) {
-    sum(abs(x[x<0]))/length(x)
-  })
-  se <- sd(evsi_samples)
-  #ci <- c(evsi + se * qnorm(0.0975), pmin(evsi - se * qnorm(0.0975), 0))
-  ci <- quantile(evsi_samples, c(0.025, 0.975))
-  # return(list("evsi"= round(evsi,6), "se"=round(se,6), "upper" = round(ci[1],6), "lower" = round(ci[2],6) ))
-  
-  return(list("evsi"= round(evsi,6), "se"=round(se,6), "lower" = round(ci[1],6), "upper" = round(ci[2],6) ))
-}
-
-
-##############################################################################################
 # Function to define a GAM regression model
 ##############################################################################################
 reg_mod_fun <- function (summ_stat, arms, arm_indic) {
@@ -269,33 +221,103 @@ reg_mod_fun <- function (summ_stat, arms, arm_indic) {
   regr_model <- lapply(var_names, function (x) {
     paste("te(", paste(x,collapse = ","), ",k=4)", sep = "")
   })
-  
-  regr_model <- paste(unlist(regr_model), collapse = "+")
+  # regr_model <- paste(unlist(regr_model), collapse = "+")
   
 }
+
+
+##############################################################################################
+# Function for computing EVSI using GAM
+##############################################################################################
+gam_evsi_fun <- function (m_nb, summ_stat, regr_model, arm_indic) {
+  
+  print(paste("Estimating posterior NB"))
+    
+
+  ### GAM regression
+  l_gam_est <- lapply(1:length(regr_model), function (i) { 
+
+    f <- update(formula(m_nb[,i] ~ .), formula(paste(".~", regr_model[[i]])))
+    mod <- gam(f, data = data.frame(summ_stat)) #summ_stat[,arm_indic==i]
+    
+    # extract fitted values                  
+    g_hat <- mod$fitted
+
+    ### compute standard errors
+
+    # extract the basis function values
+    Xstar <- model.matrix(mod)
+    
+    # extract coefficients
+    beta <- mod$coef
+    
+    # covariance matrix
+    v_cov <- vcov(mod)
+    
+    # sample from the parameter distributions
+    set.seed(123)
+    parameter_draws <- t(mvrnorm(2000, beta, v_cov))
+    
+    # # from these draws, calculate draws from fitted values
+    fitted_draws <- Xstar %*% parameter_draws
+    
+    return(list(g_hat = g_hat, fitted_draws = fitted_draws))
+  })
+  
+
+  # extract g_hat and fitted draws
+  g_hat <- sapply(l_gam_est, function (x) x[[1]])
+  fitted_draws <- lapply(l_gam_est, function (x) x[[2]])
+  rm(l_gam_est)
+
+  ### compute evsi
+  v_nb_max <- apply(g_hat, 1, function (x) max(x)) # compute the pairwise maximum
+  evsi <- mean(v_nb_max) - max(colMeans(g_hat)) 
+  
+  ### compute standard error
+
+  # compute EVSI for each sample
+  v_nb_max <- colMeans(do.call(pmax, fitted_draws)) # compute the pairwise maximum
+  v_max_means <- do.call(colMeans, fitted_draws)
+  v_evsi <- v_nb_max - v_max_means
+
+  # standard error and ci
+  se <- sd(v_evsi)
+  ci <- c(pmax(evsi - se * qnorm(0.975), 0), evsi + se * qnorm(0.975))
+  #ci <- quantile(v_evsi, c(0.025, 0.975))
+  
+  return(list("evsi"= round(evsi,6), "se"=round(se,6), "lower" = round(ci[1],6), "upper" = round(ci[2],6) ))
+}
+
 
 
 ##############################################################################################
 # Function for computing EVSI using MARS
 ##############################################################################################
-mars_evsi_fun <- function (v_inb, summ_stat) {
+mars_evsi_fun <- function (m_nb, summ_stat, arm_indic) {
   
-  print(paste("Estimating posterior v_inb.."))
+  print(paste("Estimating posterior NB.."))
   
-  mars_mod <- earth::earth(v_inb ~ ., data = data.frame(summ_stat),
-                           nk = 1e3, fast.k = 20, degree = 10, thresh = 1e-4)
-  posterior <- mars_mod$fitted.values
-  evsi <- sum(abs(posterior[posterior<0]))/length(posterior)
+  m_mars_post <- sapply(1:ncol(m_nb), function (i) {
+    mars_mod <- earth::earth(m_nb[,i] ~ ., data = data.frame(summ_stat[,arm_indic==i, drop = FALSE]),
+                             nk = 1e3, fast.k = 20, degree = 10, thresh = 1e-4)
+    posterior <- mars_mod$fitted.values
+    return(posterior)
+  })
+  
+  ### compute evsi
+  v_nb_max <- apply(m_mars_post, 1, function (x) max(x)) # compute the pairwise maximum
+  evsi <- mean(v_nb_max) - max(colMeans(m_mars_post)) 
   
   return(evsi)
+  
 }
-
 
 
 ##############################################################################################
 # Function for computing partial EVPI using GAM
 ##############################################################################################
-surv_evppi_fun <- function (v_inb, l_os=NULL, l_pfs=NULL) {
+surv_evppi_fun <- function (m_nb, l_os=NULL, l_pfs=NULL) {
   
   ######### Overall survival only #########
   if(is.null(l_pfs)) {
@@ -327,15 +349,31 @@ surv_evppi_fun <- function (v_inb, l_os=NULL, l_pfs=NULL) {
   
   ######### Compute partial EVPI using GAM #########
   regr_model <- reg_mod_fun(summ_stat, arms, arm_indic)
-  evppi <- gam_evsi_fun(v_inb, summ_stat, regr_model)
+  evppi <- gam_evsi_fun(m_nb, summ_stat, regr_model, arm_indic)
   names(evppi) <- c("evppi", "se", "lower", "upper")
   
   ######### Compute partial EVPI using MARS #########
-  #evppi <- mars_evsi_fun(v_inb, summ_stat)
+  #evppi <- mars_evsi_fun(m_nb, summ_stat)
   
   print(round(unlist(evppi),3))
   
   return(evppi)
+}
+
+
+##############################################################################################
+# Function to define a GAM regression model
+##############################################################################################
+reg_mod_fun <- function (summ_stat, arms, arm_indic) {
+  
+  var_names <- lapply(arms, function (x) {
+    colnames(summ_stat[arm_indic == x])
+  })
+  regr_model <- lapply(var_names, function (x) {
+    paste("te(", paste(x,collapse = ","), ",k=4)", sep = "")
+  })
+  # regr_model <- paste(unlist(regr_model), collapse = "+")
+  
 }
 
 
@@ -372,21 +410,27 @@ intersect_fun <- function (x, y, x2, y2, step) {
 # function for interpolating the EVSI estimates using asymptotic regression
 ####################################################################################
 evsi_ar_fun <- function (evsi, add_fu) {
-  
+ 
   # fit asymptotic regression to EVSI values
   df <- as.data.frame(cbind("y" = evsi[2,], "x" = evsi[1,]))
   ar_mod_evsi <- drm(y ~ x, data = df, fct = AR.3(fixed = c(NA, NA, NA)), pmodels = list(~1, ~1,~1))
   new_times <- data.frame("x" = seq.int(min(add_fu), max(add_fu), 1)) #seq.int(min(add_fu)
   evsi_ar <- data.frame("times" = new_times, "evsi" = predict(ar_mod_evsi, newdata = new_times), group = 1)
   
+  
   # fit exponential decay model to SE for EVSI values
   df <- as.data.frame(cbind("y" = evsi[3,], "x" = evsi[1,]))
   ar_mod_evsi_se <- drm(y ~ x, data = df, fct = EXD.3(fixed = c(NA, NA, NA)), pmodels = list(~1, ~1,~1)) #evsi[3,ncol(evsi)], evsi[3,1],
   evsi_ar$se <- predict(ar_mod_evsi_se, newdata = new_times)
   
+  # fit interpolating splines to SE for EVSI values
+  #evsi_ar$se <- spline(x = evsi[1,], y = evsi[3,], xout = new_times$x, method ="hyman")$y
+  
   # lower and upper bound for EVSI values
-  evsi_ar$lower  <- evsi_ar$evsi + pmax(evsi_ar$se * qnorm(0.975), 0)
-  evsi_ar$upper <- evsi_ar$evsi - evsi_ar$se * qnorm(0.975)
+  evsi_ar$lower  <- pmax(evsi_ar$evsi - evsi_ar$se * qnorm(0.975), 0)
+  evsi_ar$upper <- evsi_ar$evsi + evsi_ar$se * qnorm(0.975)
+  # evsi_ar$lower <- spline(evsi[1,], evsi[4,], xout = new_times$x)$y
+  # evsi_ar$upper  <- spline(evsi[1,], evsi[5,], xout = new_times$x)$y
   
   # OS events
   evsi_ar$os_events <- round(spline(evsi[1,], evsi[6,], xout = seq.int(min(add_fu), max(add_fu), 1))$y)
@@ -424,7 +468,7 @@ evsi_plot_fun <- function (evsi_ar, pevpi = 0) {
 #####################################################################################
 # Population Expected Net Benefit of Sampling
 #####################################################################################
-enbs_fun <- function (evsi_ar, v_inb, c_fix, c_var,  c_var_time = NULL, c_var_event = NULL, c_rev, t_lag, inc_pop, prev_pop, dec_th, dr_voi,  reversal=1) {
+enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_event = NULL, c_rev, t_lag, inc_pop, prev_pop, dec_th, dr_voi,  reversal=1) {
   
   # stop conditions
   if(dec_th<max(evsi_ar[,1]) | is.null(dec_th)) {stop("The decision relevance horizon must be equal or greater than the maximum additional follow-up time.")}
@@ -526,7 +570,7 @@ enbs_fun <- function (evsi_ar, v_inb, c_fix, c_var,  c_var_time = NULL, c_var_ev
   # ENBS for AWR 
   c_enbs_awr <- reversal * pop_evsi$evsi - c_trial_var
   c_enbs_awr_sigma <- sqrt((reversal * pop_evsi$se)^2 + c_trial_var_sigma^2)
-  
+
   # subtract reversal costs
   c_rev_sigma <- (max(c_rev) - min(c_rev)) / (2 * qnorm(0.975)) # SE for reversal costs
   
@@ -554,8 +598,9 @@ enbs_fun <- function (evsi_ar, v_inb, c_fix, c_var,  c_var_time = NULL, c_var_ev
   ### ENBS OIR ###
   
   # cost due to withholding access
-  c_wait <- mean(v_inb) * mean(inc_pop) * x_times
-
+  v_inb <- max(colMeans(m_nb)) - colMeans(m_nb)[1] # incremental net benefits
+  c_wait <-  v_inb * mean(inc_pop) * x_times
+ 
   # ENBS for OIR 
   c_enbs_oir <- pop_evsi$evsi - c_trial_var - c_wait
   c_enbs_oir_sigma <- sqrt(pop_evsi$se^2 + c_trial_var_sigma^2)
