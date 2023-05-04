@@ -60,8 +60,8 @@ source(here("R", "data_gen_functions.R")); source(here("R", "evsi_functions.R"))
 evpi <- mean(apply(m_nb, 1, max)) - max(colMeans(m_nb)); evpi
 
 # Expected Value of Partial Perfect Information
-evppi_os <- surv_evppi_fun(m_nb, l_os)
-evppi_os_pfs <- surv_evppi_fun(m_nb, l_os, l_pfs)
+pevpi_os <- surv_pevpi_fun(m_nb, l_os)
+pevpi_os_pfs <- surv_pevpi_fun(m_nb, l_os, l_pfs)
 
 ##################################################
 # Expected Value of Sample Information
@@ -94,12 +94,12 @@ max_add_fu <- 60
 
 # compute EVSI for OS and interpolate the EVSI estimates across different follow-up times using asymptotic regression
 df_evsi_os <- evsi_os_fun(m_nb, l_os, l_atrisk_times_os, max_add_fu, ncyc_y, l_dropout, l_enroll = NULL)  
-evsi_plot_fun(df_evsi_os, evppi_os) # plot the EVSI estimates
+evsi_plot_fun(df_evsi_os, pevpi_os) # plot the EVSI estimates
 
 # compute EVSI for OS + PFS and interpolate the EVSI estimates across different follow-up times using asymptotic regression
 # note: the computation time for OS + PFS is about 2-3 times longer than for OS only
 df_evsi_os_pfs <- evsi_os_pfs_fun(m_nb, l_os, l_pfs, l_atrisk_times_os, l_atrisk_times_pfs, max_add_fu, ncyc_y,  l_dropout, l_enroll = NULL)
-evsi_plot_fun(df_evsi_os_pfs, evppi_os_pfs) # plot the EVSI estimates
+evsi_plot_fun(df_evsi_os_pfs, pevpi_os_pfs) # plot the EVSI estimates
 
 
 ##################################################
@@ -112,22 +112,22 @@ round(spline(df_evsi_os$os_events, df_evsi_os$time, # estimated time in months u
              ties = min,  xout = add_events)$y) 
 
 # range for the fixed trial setup costs
-c_fix <- c(0,0) # fixed trial setup costs
+c_fix <- c(0,0) 
 
 # range for the monthly variable trial costs (estimated from Park et al. 2022, JAMA)
 d2p <- 0.7271 * 0.7                                    # exchange rate and purchasing power parities US dollar to GBP in 2021
 c_site <- 5000 * 124                                   # monthly site management costs for 124 sites
 c_database <- 2500                                     # monthly database management costs
 c_fu_pat <- 313 * length(unlist(l_atrisk_times_os))    # monthly follow-up costs for 670 patients at risk 
-c_var_mu <- (sum(c_site, c_database, c_fu_pat) * d2p)  # mean total monthly costs (NHB)
-c_var <- c(c_var_mu * 0.75, c_var_mu * 1.25)           # range for the monthly costs
+c_var_mu <- (sum(c_site, c_database, c_fu_pat) * d2p)  # mean total monthly costs
+c_var <- c(c_var_mu * 0.9, c_var_mu * 1.1)             # range for the monthly costs
 
 # range for the decision reversal costs
 c_rev <- c(0, 0)
 
 # monthly incident population 
 inc_pop <- ((12600 * 0.8 * 0.75 * 0.44) / 12)  # estimated from company submission in TA650
-inc_pop <- c(inc_pop * 0.95, inc_pop * 1.05)   # range for the monthly incidence
+inc_pop <- c(inc_pop * 0.90, inc_pop * 1.10)   # range for the monthly incidence
 
 # prevalent "catch-up" population
 prev_pop <- c(100, 200) # assumption

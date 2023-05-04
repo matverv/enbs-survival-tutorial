@@ -351,7 +351,7 @@ mars_evsi_fun <- function (m_nb, summ_stat, arm_indic) {
 ##############################################################################################
 # Function for computing partial EVPI using GAM
 ##############################################################################################
-surv_evppi_fun <- function (m_nb, l_os=NULL, l_pfs=NULL) {
+surv_pevpi_fun <- function (m_nb, l_os=NULL, l_pfs=NULL) {
   
   ######### Overall survival only #########
   if(is.null(l_pfs)) {
@@ -383,15 +383,15 @@ surv_evppi_fun <- function (m_nb, l_os=NULL, l_pfs=NULL) {
   
   ######### Compute partial EVPI using GAM #########
   regr_model <- reg_mod_fun(summ_stat, arms, arm_indic)
-  evppi <- gam_evsi_fun(m_nb, summ_stat, regr_model, arm_indic)
-  names(evppi) <- c("evppi", "se", "lower", "upper")
+  pevpi <- gam_evsi_fun(m_nb, summ_stat, regr_model, arm_indic)
+  names(pevpi) <- c("pevpi", "se", "lower", "upper")
   
   ######### Compute partial EVPI using MARS #########
-  #evppi <- mars_evsi_fun(m_nb, summ_stat)
+  #pevpi <- mars_evsi_fun(m_nb, summ_stat)
   
-  print(round(unlist(evppi),3))
+  print(round(unlist(pevpi),3))
   
-  return(evppi)
+  return(pevpi)
 }
 
 
@@ -478,7 +478,7 @@ evsi_plot_fun <- function (evsi_ar, pevpi = NULL) {
     
     # create a dataframe with partial EVPI values
     pevpi_temp <- evsi_ar
-    pevpi_temp$evsi <- pevpi$evppi
+    pevpi_temp$evsi <- pevpi$pevpi
     pevpi_temp$upper <- pevpi$upper
     pevpi_temp$lower <- pevpi$lower
     pevpi_temp$group <- "Partial EVPI"
