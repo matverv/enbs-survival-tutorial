@@ -130,7 +130,7 @@ inc_pop <- ((12600 * 0.8 * 0.75 * 0.44) / 12)  # estimated from company submissi
 inc_pop <- c(inc_pop * 0.90, inc_pop * 1.10)   # range for the monthly incidence
 
 # prevalent "catch-up" population
-prev_pop <- c(100, 200) # assumption
+prev_pop <- c(50, 100) # assumption
 
 # other settings
 t_lag <- c(3, 6)  # range for the lag time between the end of follow-up and decision making in months
