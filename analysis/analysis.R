@@ -50,7 +50,7 @@ plot_ce_scatter_fun(incr_cost, incr_qaly, thresh, "£")
 #####################################################################################
 
 # load data-simulation and EVSI functions
-source(here("R", "data_gen_functions.R")); source(here("R", "evsi_functions.R"))
+source(here("R", "data_gen_functions.R")); source(here("R", "voi_functions.R"))
 
 #################################################
 # Expected Value of (Partial) Perfect Information
