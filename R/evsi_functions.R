@@ -52,7 +52,7 @@ evsi_os_pfs_fun <- function (m_nb, l_os, l_pfs, l_atrisk_times_os, l_atrisk_time
   if(!is.null(l_enroll) & mean(unlist(l_atrisk_times_os))>0) {stop("The list of enrollment rates should be NULL when the start times > 0.")}
   
   surv_evsi_fun(
-    m_nb = m_nb,                                  # net benefits
+    m_nb = m_nb,                                    # net benefits
     l_os = l_os,                                    # overall survival (OS) probabilities over discrete model cycles for each treatment 
     l_pfs = l_pfs,                                  # progression-free survival (PFS) probabilities over discrete model cycles for each treatment 
     l_atrisk_times_os = l_atrisk_times_os,          # individual observed follow-up times for OS for each treatment
@@ -70,13 +70,13 @@ evsi_os_pfs_fun <- function (m_nb, l_os, l_pfs, l_atrisk_times_os, l_atrisk_time
 ##############################################################################################
 add_fu_fun <- function (max_add_fu) {
   
-  add_fup <- c(2, max_add_fu)
+  add_fup <- log(c(1, max_add_fu))
   fu_range <- max(add_fup) - min(add_fup)
   add_fup <- c(min(add_fup), 
               min(add_fup) + (1/3) * fu_range,
               min(add_fup) + (2/3) * fu_range,
               max(add_fup))
-  add_fup <- round(add_fup)
+  add_fup <- round(exp(add_fup))
   return(add_fup)
 }
 

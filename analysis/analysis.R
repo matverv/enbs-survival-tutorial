@@ -125,7 +125,7 @@ c_var <- c(c_var_mu * 0.9, c_var_mu * 1.1)             # range for the monthly c
 # range for the decision reversal costs
 c_rev <- c(0, 0)
 
-# monthly incident population 
+# monthly incident population
 inc_pop <- ((12600 * 0.8 * 0.75 * 0.44) / 12)  # estimated from company submission in TA650
 inc_pop <- c(inc_pop * 0.90, inc_pop * 1.10)   # range for the monthly incidence
 
