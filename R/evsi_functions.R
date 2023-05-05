@@ -546,7 +546,7 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   
   # if no time or events are defined after which variable cost are incurred, set c_var_time = 0
   if(is.null(c_var_time) & is.null(c_var_event)) {c_var_time <- 0}
-
+  
   
   ### Time lag (time between end of follow-up and decision making) ###
   
@@ -691,7 +691,8 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   x_2 <- temp$time[which.max(temp$value)]
   y_2 <- max(temp$value)
   fu2 <- x_2 - mean(t_lag)
-  if(y_2<=1) {
+  
+  if(y_2<=0) {
     x_2 <- 0
     fu2 <- 0
   }
@@ -700,9 +701,7 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   anno1   <- deparse(bquote(paste(~ italic("t"^"*") == .(round(x_1,0)) )) )
   anno2   <- deparse(bquote(paste(~ italic("t"^"*") == .(round(x_2,0)) )) )
   
-  y_loc <- pmax((max(df_enbs$value) - min(df_enbs$value)),  max(df_enbs$value)) * 0.06 #(max(df_enbs$value) - min(df_enbs$value)) * 0.08
-  
-  pmax((max(df_enbs$value) - min(df_enbs$value)),  max(df_enbs$value))
+  y_loc <- pmax((max(df_enbs$value) - min(df_enbs$value)),  max(df_enbs$value)) * 0.06 #(max(df_enbs$value) - min(df_enbs$value)) * 0.08 pmax((max(df_enbs$value) - min(df_enbs$value)),  max(df_enbs$value))
   
   gg_color_hue <- function(n) {
     hues = seq(15, 375, length = n + 1)
