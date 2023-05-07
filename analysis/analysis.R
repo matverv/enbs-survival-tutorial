@@ -18,8 +18,8 @@ library(here); source(here("R", "ce_model_functions.R"))
 
 # Run a probabilistic analysis of size "K"
 set.seed(123)         # set the seed for reproducibility
-K <- 2e3              # number of simulations
-l_pa <- pa_fun(K)     # run the probabilistic analysis
+K <- 5e3              # number of simulations
+l_pa <- pa_fun(K, price = 1)     # run the probabilistic analysis
 
 # OS and PFS probabilities
 l_os <- l_pa$l_os    # OS probabilities (first element should be OS for standard care)
@@ -132,8 +132,12 @@ inc_pop <- c(inc_pop * 0.90, inc_pop * 1.10)   # range for the monthly incidence
 # prevalent "catch-up" population
 prev_pop <- c(50, 100) # assumption
 
+# range for the lag time between the end of follow-up and decision making and change of clinical practice in months for AWR
+# for an ongoing trial, subtract the time lag between the current follow-up and initial decision to avoid double counting
+t_lag_awr <- c(3, 12) - 6  # AWR
+t_lag_oir <- c(3, 9) - 6 # OIR
+
 # other settings
-t_lag <- c(3, 6)  # range for the lag time between the end of follow-up and decision making in months
 dec_th <- 60      # time horizon at t_1 in months (will be reduced by the additional follow-up + lag time)
 dr_voi <- 0.035   # annual discount rate
 reversal <- 1     # probability that an approval decision can be reversed
@@ -146,8 +150,8 @@ enbs_fun(df_evsi_os, m_nb,  # replace "df_evsi_os" with "df_evsi_os_pfs" (if cal
          c_var_time = NULL,
          c_var_event = add_events,
          c_rev = c_rev / thresh,
-         t_lag_awr = c(2, 10) - 4,
-         t_lag_oir = c(2, 6) - 4,
+         t_lag_awr = t_lag_awr,
+         t_lag_oir = t_lag_oir,
          inc_pop = inc_pop,
          prev_pop = prev_pop,
          dec_th = dec_th, 

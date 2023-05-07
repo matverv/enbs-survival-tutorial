@@ -70,7 +70,7 @@ evsi_os_pfs_fun <- function (m_nb, l_os, l_pfs, l_atrisk_times_os, l_atrisk_time
 ##############################################################################################
 add_fu_fun <- function (max_add_fu) {
   
-  add_fup <- log(c(1, max_add_fu))
+  add_fup <- log(c(2, max_add_fu))
   fu_range <- max(add_fup) - min(add_fup)
   add_fup <- c(min(add_fup), 
               min(add_fup) + (1/3) * fu_range,
@@ -260,7 +260,7 @@ gam_evsi_fun <- function (m_nb, summ_stat, regr_model, arm_indic) {
     
   # matrix of incremental net benefits
   m_inb <- matrix(m_nb[,2:ncol(m_nb)] - m_nb[,1], ncol = (ncol(m_nb)-1) )
-
+  
   # number of GAM parameter samples for computation of SE and CI
   nsim_gam <- 2000 
   
@@ -437,19 +437,23 @@ evsi_ar_fun <- function (evsi, add_fu) {
   new_times <- data.frame("x" = seq.int(min(add_fu), max(add_fu), 1)) #seq.int(min(add_fu)
   evsi_ar <- data.frame("times" = new_times, "evsi" = predict(ar_mod_evsi, newdata = new_times), group = 1)
   
-  # fit asymptotic regression to lower limit
-  df <- as.data.frame(cbind("y" = evsi[4,], "x" = evsi[1,]))
-  ar_mod_lower <- drm(y ~ x, data = df, fct = AR.3(fixed = c(NA, NA, NA)), pmodels = list(~1, ~1,~1)) #ar_mod_evsi$fit$par[3]
-  evsi_ar$lower <- predict(ar_mod_lower, newdata = new_times)
-
-  # fit asymptotic regression to upper limit
-  df <- as.data.frame(cbind("y" = evsi[5,], "x" = evsi[1,]))
-  ar_mod_upper <- drm(y ~ x, data = df, fct = AR.3(fixed = c(NA, NA, NA)), pmodels = list(~1, ~1,~1)) #ar_mod_evsi$fit$par[3]
-  evsi_ar$upper <- predict(ar_mod_upper, newdata = new_times)
-  
   # fit spline model to SE for EVSI values
   df <- as.data.frame(cbind("y" = evsi[3,], "x" = evsi[1,]))
-  evsi_ar$se <- spline(x = df$x, y =df$y, xout =  new_times$x)$y
+  evsi_ar$se <- exp(approx(x = df$x, y =log(df$y), xout =  new_times$x)$y)
+  
+  # estimate upper limit
+  df <- as.data.frame(cbind("y" = evsi[5,] - evsi[2,], "x" = evsi[1,]))
+  approx_upper <- approx(x = df$x, y =(df$y), xout =  new_times$x)$y
+  evsi_ar$upper <- evsi_ar$evsi + approx_upper
+  
+  # estimate lower limit
+  df <- as.data.frame(cbind("y" = evsi[4,] - evsi[2,], "x" = evsi[1,]))
+  approx_lower <- approx(x = df$x, y = (df$y), xout =  new_times$x)$y
+  evsi_ar$lower <- evsi_ar$evsi + approx_lower
+  
+  # alternative: estimate upper and lower limits based on SE
+  # evsi_ar$upper <- pmax(0, evsi_ar$evsi + evsi_ar$se * qnorm(0.975))
+  # evsi_ar$lower <- evsi_ar$evsi - evsi_ar$se * qnorm(0.975) 
   
   # OS events
   evsi_ar$os_events <- round(spline(evsi[1,], evsi[6,], xout = seq.int(min(add_fu), max(add_fu), 1))$y)
@@ -548,12 +552,12 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   if(is.null(c_var_time) & is.null(c_var_event)) {c_var_time <- 0}
   
   
-  ### Time lag (time between end of follow-up and decision making) ###
+  
   # vector of times for calculations
   x_times <- evsi_ar[,1] #seq.int(min(add_fu), max(add_fu), 1) # times until maximum follow-up
   x_times_desc <- sort(x_times, decreasing = T) +  (dec_th - max(evsi_ar[,1]) - min(evsi_ar[,1]))
   
-  # function to compute 
+  # function to compute population EVSI
   pop_evsi_fun <- function (t_lag) {
     
     # EVSI adjusted for time lag
@@ -690,7 +694,7 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   temp <- cbind(subset(df_enbs, group == "AWR", select = c(time, value)))
   x_1 <- temp$time[which.max(temp$value)]
   y_1 <- max(temp$value)
-  fu1 <- x_1 - mean(t_lag)
+  fu1 <- x_1 - mean(t_lag_awr)
   
   if(y_1<=0) {
     x_1 <- 0
@@ -701,7 +705,7 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   temp <- cbind(subset(df_enbs, group == "OIR", select = c(time, value)))
   x_2 <- temp$time[which.max(temp$value)]
   y_2 <- max(temp$value)
-  fu2 <- x_2 - mean(t_lag)
+  fu2 <- x_2 - mean(t_lag_oir)
   
   if(y_2<=0) {
     x_2 <- 0
