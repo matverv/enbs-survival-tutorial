@@ -18,7 +18,7 @@ library(here); source(here("R", "ce_model_functions.R"))
 
 # Run a probabilistic analysis of size "K"
 set.seed(123)         # set the seed for reproducibility
-K <- 5e3              # number of simulations
+K <- 2e3              # number of simulations
 l_pa <- pa_fun(K)     # run the probabilistic analysis
 
 # OS and PFS probabilities
@@ -146,10 +146,10 @@ enbs_fun(df_evsi_os, m_nb,  # replace "df_evsi_os" with "df_evsi_os_pfs" (if cal
          c_var_time = NULL,
          c_var_event = add_events,
          c_rev = c_rev / thresh,
-         t_lag = t_lag,
+         t_lag_awr = c(2, 10) - 4,
+         t_lag_oir = c(2, 6) - 4,
          inc_pop = inc_pop,
          prev_pop = prev_pop,
          dec_th = dec_th, 
-         dr_voi = dr_voi, 
-         reversal = reversal)
+         dr_voi = dr_voi)
 

@@ -518,7 +518,7 @@ evsi_plot_fun <- function (evsi_ar, pevpi = NULL) {
 #####################################################################################
 # Population Expected Net Benefit of Sampling
 #####################################################################################
-enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_event = NULL, c_rev, t_lag, inc_pop, prev_pop, dec_th, dr_voi,  reversal=1) {
+enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_event = NULL, c_rev, t_lag_awr, t_lag_oir, inc_pop, prev_pop, dec_th, dr_voi,  reversal=1) {
   
   # stop conditions
   if(dec_th<max(evsi_ar[,1]) | is.null(dec_th)) {stop("The decision relevance horizon must be equal or greater than the maximum additional follow-up time.")}
@@ -549,58 +549,65 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   
   
   ### Time lag (time between end of follow-up and decision making) ###
-  
   # vector of times for calculations
   x_times <- evsi_ar[,1] #seq.int(min(add_fu), max(add_fu), 1) # times until maximum follow-up
   x_times_desc <- sort(x_times, decreasing = T) +  (dec_th - max(evsi_ar[,1]) - min(evsi_ar[,1]))
   
-  # EVSI adjusted for time lag
-  t_lag_sigma <- (max(t_lag) - min(t_lag)) / (2 * qnorm(0.975)) # SE for lag in reporting time
-  lag_temp <- round(rnorm(5000, mean(t_lag), t_lag_sigma)) # sample reporting delay times
-  df_x_times_desc <-  sapply(lag_temp, function (x){ # adjust decision relevance horizons
-    pmax(x_times_desc - x, 0)
-    #x_times_desc - x
-  })
-  df_evsi_temp <- apply(df_x_times_desc, 2, function (x) {evsi_ar$evsi * x})  # multiply adjusted decision relevance horizons with EVSI
-  df_se_temp <- apply(df_x_times_desc, 2, function (x) {evsi_ar$se * x})  # multiply adjusted decision relevance horizons with SE
+  # function to compute 
+  pop_evsi_fun <- function (t_lag) {
+    
+    # EVSI adjusted for time lag
+    t_lag_sigma <- (max(t_lag) - min(t_lag)) / (2 * qnorm(0.975)) # SE for lag in reporting time
+    lag_temp <- round(rnorm(5000, mean(t_lag), t_lag_sigma)) # sample reporting delay times
+    df_x_times_desc <-  sapply(lag_temp, function (x){ # adjust decision relevance horizons
+      pmax(x_times_desc - x, 0)
+      #x_times_desc - x
+    })
+    df_evsi_temp <- apply(df_x_times_desc, 2, function (x) {evsi_ar$evsi * x})  # multiply adjusted decision relevance horizons with EVSI
+    df_se_temp <- apply(df_x_times_desc, 2, function (x) {evsi_ar$se * x})  # multiply adjusted decision relevance horizons with SE
+    
+    # mean EVSI adjusted for delay in reporting
+    evsi_delay <- rowMeans(df_evsi_temp) #rowMeans(df_x_times_desc) * evsi_ar$evsi 
+    
+    # SE due to uncertainty in GAM estimate
+    se_gam_temp <- rowMeans(df_se_temp) 
+    
+    # SE due to uncertainty in lag time (time between end of follow-up and decision making)
+    upper_temp <- apply(df_evsi_temp, 1, function (x) {quantile(x, 0.975) }) # upper range due to lag time
+    lower_temp <- apply(df_evsi_temp, 1, function (x) {quantile(x, 0.025) }) # lower range due to lag time
+    se_delay_temp <- (upper_temp - lower_temp) / (2 * qnorm(0.975)) # SE due to lag time
+    
+    # combine SE due to reporting delay with SE for GAM estimate of EVSI
+    se_delay <- sqrt(se_delay_temp^2 + se_gam_temp^2)
+    
+    ### Population EVSI ###
+    
+    # mean population EVSI (accounting for both incidence and prevalence)
+    evsi_pop <- evsi_delay * mean(inc_pop) + evsi_ar$evsi * mean(prev_pop) * rowMeans(df_x_times_desc)
+    
+    # SE for incident population EVSI
+    upper_temp <- evsi_delay * max(inc_pop) 
+    lower_temp <- evsi_delay * min(inc_pop)
+    se_pop <- (upper_temp - lower_temp) / (2 * qnorm(0.975)) 
+    se_pop <-  sqrt(se_pop^2 + (se_delay * mean(inc_pop))^2)
+    
+    # SE for incident + prevalent population EVSI
+    upper_temp <- evsi_ar$upper * max(prev_pop) * ifelse(rowMeans(df_x_times_desc)>0, 1, 0)
+    lower_temp <- evsi_ar$lower * min(prev_pop) * ifelse(rowMeans(df_x_times_desc)>0, 1, 0)
+    se_prev <- (upper_temp - lower_temp) / (2 * qnorm(0.975)) 
+    se_pop <-  sqrt(se_pop^2 + se_prev^2)
+    
+    # dataframe with population EVSI and SE
+    pop_evsi <- data.frame(times = x_times,
+                           evsi = evsi_pop, 
+                           se = se_pop) # overall SE accounting for uncertainty in incidence, delayed reporting and GAM estimator
+    
+  }
   
-  # mean EVSI adjusted for delay in reporting
-  evsi_delay <- rowMeans(df_evsi_temp) #rowMeans(df_x_times_desc) * evsi_ar$evsi 
- 
-  # SE due to uncertainty in GAM estimate
-  se_gam_temp <- rowMeans(df_se_temp) 
-  
-  # SE due to uncertainty in lag time (time between end of follow-up and decision making)
-  upper_temp <- apply(df_evsi_temp, 1, function (x) {quantile(x, 0.975) }) # upper range due to lag time
-  lower_temp <- apply(df_evsi_temp, 1, function (x) {quantile(x, 0.025) }) # lower range due to lag time
-  se_delay_temp <- (upper_temp - lower_temp) / (2 * qnorm(0.975)) # SE due to lag time
-
-  # combine SE due to reporting delay with SE for GAM estimate of EVSI
-  se_delay <- sqrt(se_delay_temp^2 + se_gam_temp^2)
-  
-  ### Population EVSI ###
-  
-  # mean population EVSI (accounting for both incidence and prevalence)
-  evsi_pop <- evsi_delay * mean(inc_pop) + evsi_ar$evsi * mean(prev_pop) * rowMeans(df_x_times_desc)
-
-  # SE for incident population EVSI
-  upper_temp <- evsi_delay * max(inc_pop) 
-  lower_temp <- evsi_delay * min(inc_pop)
-  se_pop <- (upper_temp - lower_temp) / (2 * qnorm(0.975)) 
-  se_pop <-  sqrt(se_pop^2 + (se_delay * mean(inc_pop))^2)
-  
-  # SE for incident + prevalent population EVSI
-  upper_temp <- evsi_ar$upper * max(prev_pop) * ifelse(rowMeans(df_x_times_desc)>0, 1, 0)
-  lower_temp <- evsi_ar$lower * min(prev_pop) * ifelse(rowMeans(df_x_times_desc)>0, 1, 0)
-  se_prev <- (upper_temp - lower_temp) / (2 * qnorm(0.975)) 
-  se_pop <-  sqrt(se_pop^2 + se_prev^2)
-  
-  # dataframe with population EVSI and SE
-  pop_evsi <- data.frame(times = x_times,
-                         evsi = evsi_pop, 
-                         se = se_pop) # overall SE accounting for uncertainty in incidence, delayed reporting and GAM estimator
-
   ### ENBS AWR ###
+  
+  # population EVSI for AWR
+  pop_evsi <- pop_evsi_fun(t_lag_awr)
   
   # variable trial costs
   if(!is.null(c_var_time)) {
@@ -609,7 +616,7 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
     c_trial_var <- mean(c_var) * pmax(0, x_times - c_var_time)
     c_trial_var_sigma <- (c_trial_upper - c_trial_lower) / (2 * qnorm(0.975))  # SE for variable costs
   }
-  
+
   if(!is.null(c_var_event)) {
     c_trial_upper <- cumsum(max(c_var) * pnorm(c_var_event, evsi_ar$os_events, evsi_ar$os_events_se, lower.tail = F))
     c_trial_lower <- cumsum(min(c_var) * pnorm(c_var_event, evsi_ar$os_events, evsi_ar$os_events_se, lower.tail = F))
@@ -644,13 +651,16 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
                        "lower" = (c_enbs_awr - qnorm(0.975) * c_enbs_awr_sigma), 
                        "upper" = (c_enbs_awr + qnorm(0.975) * c_enbs_awr_sigma), 
                        "group" = "AWR")
-  
+ 
   ### ENBS OIR ###
+  
+  # population EVSI for AWR
+  pop_evsi <- pop_evsi_fun(t_lag_oir)
   
   # cost due to withholding access
   v_inb <- max(colMeans(m_nb)) - colMeans(m_nb)[1] # incremental net benefits
   c_wait <-  v_inb * mean(inc_pop) * x_times
- 
+  
   # ENBS for OIR 
   c_enbs_oir <- pop_evsi$evsi - c_trial_var - c_wait
   c_enbs_oir_sigma <- sqrt(pop_evsi$se^2 + c_trial_var_sigma^2)
@@ -672,6 +682,7 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   ### Merge datasets ###  
   df_enbs <- rbind(df_awr, df_oir)
   df_enbs$group <- as.factor(df_enbs$group)
+  
   
   ### compute maximum ENBS for AWR and OIR 
   
@@ -735,5 +746,5 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
     geom_point(aes(x = x_2, y = y_2), colour = "black", size = 1)}
   
   p
-  
+
 }
