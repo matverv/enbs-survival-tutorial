@@ -732,6 +732,10 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   
   col <- gg_color_hue(2) 
   
+  y_loc_awr <- ifelse(y_1 > y_2, y_loc, -y_loc)
+  y_loc_oir <- ifelse(y_1 > y_2, -y_loc, y_loc)
+  
+  
   # plot ENBS predictions
   p <- ggplot(data=df_enbs, aes(x=time, y=value, group = group)) +
     theme_light() + 
@@ -749,13 +753,13 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
     geom_hline(yintercept = 0, color = "black", linetype = "dotted", linewidth = 0.8) 
   
   if(x_1 < max(evsi_ar[,1]) & x_1 > 0 & y_1 > 0) {p <- p +
-    annotate("text", label = anno1, x = x_1, y = y_1 + y_loc, size = 6, parse = T, color = col[1]) +
+    annotate("text", label = anno1, x = x_1, y = y_1 + y_loc_awr, size = 6, parse = T, color = col[1]) +
     geom_point(aes(x = x_1, y = y_1), colour = "black", size = 1)}
   
   if(x_2 < max(evsi_ar[,1]) & x_2 > 0 & y_2 > 0) {p <- p +
-    annotate("text", label = anno2, x = x_2, y = y_2 + y_loc, size = 6, parse = T, color = col[2]) +
+    annotate("text", label = anno2, x = x_2, y = y_2 + y_loc_oir, size = 6, parse = T, color = col[2]) +
     geom_point(aes(x = x_2, y = y_2), colour = "black", size = 1)}
   
   p
-
+  
 }
