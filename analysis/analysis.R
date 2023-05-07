@@ -112,7 +112,7 @@ round(spline(df_evsi_os$os_events, df_evsi_os$time, # estimated time in months u
              ties = min,  xout = add_events)$y) 
 
 # range for the fixed trial setup costs
-c_fix <- c(0,0) 
+c_fix <- c(80000,120000) 
 
 # range for the monthly variable trial costs (estimated from Park et al. 2022, JAMA)
 d2p <- 0.7271 * 0.7                                    # exchange rate and purchasing power parities US dollar to GBP in 2021
@@ -140,11 +140,10 @@ t_lag_oir <- c(3, 9) - 6 # OIR
 # other settings
 dec_th <- 60      # time horizon at t_1 in months (will be reduced by the additional follow-up + lag time)
 dr_voi <- 0.035   # annual discount rate
-reversal <- 1     # probability that an approval decision can be reversed
 
 #####  compute the ENBS #####
 # costs are converted to health units by dividing by <thresh>
-enbs_fun(df_evsi_os, m_nb,  # replace "df_evsi_os" with "df_evsi_os_pfs" (if calculated) to compute the ENBS for OS + PFS
+l_enbs <- enbs_fun(df_evsi_os, m_nb,  # replace "df_evsi_os" with "df_evsi_os_pfs" (if calculated) to compute the ENBS for OS + PFS
          c_fix = c_fix / thresh, 
          c_var = c_var / thresh,
          c_var_time = NULL,
@@ -157,3 +156,5 @@ enbs_fun(df_evsi_os, m_nb,  # replace "df_evsi_os" with "df_evsi_os_pfs" (if cal
          dec_th = dec_th, 
          dr_voi = dr_voi)
 
+l_enbs # plot the ENBS
+l_enbs$data # dataframe with ENBS estimates
