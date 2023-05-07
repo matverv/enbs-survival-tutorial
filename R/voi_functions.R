@@ -435,7 +435,7 @@ evsi_ar_fun <- function (evsi, add_fu) {
   df <- as.data.frame(cbind("y" = evsi[2,], "x" = evsi[1,]))
   ar_mod_evsi <- drm(y ~ x, data = df, fct = AR.3(fixed = c(NA, NA, NA)), pmodels = list(~1, ~1,~1))
   new_times <- data.frame("x" = seq.int(min(add_fu), max(add_fu), 1)) #seq.int(min(add_fu)
-  evsi_ar <- data.frame("times" = new_times, "evsi" = predict(ar_mod_evsi, newdata = new_times), group = 1)
+  evsi_ar <- data.frame("times" = new_times, "evsi" = pmax(predict(ar_mod_evsi, newdata = new_times), 0), group = 1)
   
   # fit spline model to SE for EVSI values
   df <- as.data.frame(cbind("y" = evsi[3,], "x" = evsi[1,]))
@@ -613,6 +613,11 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   # population EVSI for AWR
   pop_evsi <- pop_evsi_fun(t_lag_awr)
   
+  # subtract health opportunity cost if a suboptimal treatment is approved
+  m_inb <- matrix(m_nb[,2:ncol(m_nb)] - m_nb[,1], ncol = (ncol(m_nb)-1) ) # matrix of incremental net benefits
+  c_approve <-  pmin(colMeans(m_inb), 0) * mean(inc_pop) * x_times
+  pop_evsi$evsi <- pop_evsi$evsi + c_approve
+  
   # variable trial costs
   if(!is.null(c_var_time)) {
     c_trial_upper <- max(c_var) * pmax(0, x_times - c_var_time)
@@ -662,8 +667,10 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   pop_evsi <- pop_evsi_fun(t_lag_oir)
   
   # cost due to withholding access
-  v_inb <- max(colMeans(m_nb)) - colMeans(m_nb)[1] # incremental net benefits
-  c_wait <-  v_inb * mean(inc_pop) * x_times
+  # inb <- max(colMeans(m_nb[,2:length(m_nb[1,])])) - colMeans(m_nb)[1] # incremental net benefits
+  m_inb <- matrix(m_nb[,2:ncol(m_nb)] - m_nb[,1], ncol = (ncol(m_nb)-1) ) # matrix of incremental net benefits
+  inb <- pmax(colMeans(m_inb), 0)
+  c_wait <-  inb * mean(inc_pop) * x_times
   
   # ENBS for OIR 
   c_enbs_oir <- pop_evsi$evsi - c_trial_var - c_wait
