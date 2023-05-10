@@ -122,7 +122,7 @@ c_fu_pat <- 313 * length(unlist(l_atrisk_times_os))    # monthly follow-up costs
 c_var_mu <- (sum(c_site, c_database, c_fu_pat) * d2p)  # mean total monthly costs
 c_var <- c(c_var_mu * 0.9, c_var_mu * 1.1)             # range for the monthly costs
 
-# range for the decision reversal costs
+# range for irrecoverable costs that could be avoided by delaying treatment initiation
 c_irrecov <- c(0, 0)
 
 # monthly incident population
