@@ -139,7 +139,7 @@ t_lag_oir <- c(3, 9) - 6 # OIR
 
 # other settings
 dec_th <- 60      # time horizon at t_1 in months (will be reduced by the additional follow-up + lag time)
-dr_voi <- 0.035   # annual discount rate
+dr <- 0.035   # annual discount rate
 
 #####  compute the ENBS #####
 # costs are converted to health units by dividing by <thresh>
@@ -154,7 +154,7 @@ l_enbs <- enbs_fun(df_evsi_os, m_nb,  # replace "df_evsi_os" with "df_evsi_os_pf
          inc_pop = inc_pop,
          prev_pop = prev_pop,
          dec_th = dec_th, 
-         dr_voi = dr_voi)
+         dr = dr)
 
 l_enbs # plot the ENBS
 l_enbs$data # dataframe with ENBS estimates

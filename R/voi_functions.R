@@ -522,12 +522,12 @@ evsi_plot_fun <- function (evsi_ar, pevpi = NULL) {
 #####################################################################################
 # Population Expected Net Benefit of Sampling
 #####################################################################################
-enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_event = NULL, c_irrecov, t_lag_awr, t_lag_oir, inc_pop, prev_pop, dec_th, dr_voi,  reversal=1) {
+enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_event = NULL, c_irrecov, t_lag_awr, t_lag_oir, inc_pop, prev_pop, dec_th, dr,  reversal=1) {
   
   # stop conditions
   if(dec_th<max(evsi_ar[,1]) | is.null(dec_th)) {stop("The decision relevance horizon must be equal or greater than the maximum additional follow-up time.")}
   
-  if(dr_voi>=1 | dr_voi<0 | is.null(dr_voi)) {stop("The annual discount rate is not below 1.")}
+  if(dr>=1 | dr<0 | is.null(dr)) {stop("The annual discount rate is not below 1.")}
   
   if(min(c_var)<0 | is.null(c_var)) {stop("Monthly trial costs are not a positive.")}
   if(length(c_var) > 2) {stop("Monthly trial costs are not a range.")}
@@ -644,10 +644,10 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   c_enbs_awr_sigma <- sqrt(c_enbs_awr_sigma^2 + c_irrecov_sigma^2)
   
   # apply discounting
-  v_dr_voi <- 1/(1+dr_voi)^(x_times/12) # monthly discount rate 
+  v_dr <- 1/(1+dr)^(x_times/12) # monthly discount rate 
   
-  c_enbs_awr <- c_enbs_awr * v_dr_voi
-  c_enbs_awr_sigma <- c_enbs_awr_sigma * v_dr_voi
+  c_enbs_awr <- c_enbs_awr * v_dr
+  c_enbs_awr_sigma <- c_enbs_awr_sigma * v_dr
   
   # subtract fixed trial setup costs
   c_fix_sigma <- (max(c_fix) - min(c_fix)) / (2 * qnorm(0.975)) # SE for fixed costs
@@ -677,8 +677,8 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   c_enbs_oir_sigma <- sqrt(pop_evsi$se^2 + c_trial_var_sigma^2)
   
   # apply discounting
-  c_enbs_oir <- c_enbs_oir * v_dr_voi
-  c_enbs_oir_sigma <- c_enbs_oir_sigma * v_dr_voi
+  c_enbs_oir <- c_enbs_oir * v_dr
+  c_enbs_oir_sigma <- c_enbs_oir_sigma * v_dr
   
   # subtract fixed costs
   c_enbs_oir <- c_enbs_oir - mean(c_fix)
