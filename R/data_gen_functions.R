@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Mathyn Vervaart, Eline Aas, Karl Claxton, Anna Heath, Mark Strong, Nicky Welton, Torbjørn Wisløff 
+# Copyright (c) 2023 Mathyn Vervaart
 # Licensed under the MIT License
 
 #--------------------------------------------------------------------------------------------#

@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Mathyn Vervaart, Eline Aas, Karl Claxton, Anna Heath, Mark Strong, Nicky Welton, Torbjørn Wisløff 
+# Copyright (c) 2023 Mathyn Vervaart
 # Licensed under the MIT License
 
 rm(list=ls(all=TRUE))	# clear workspace
@@ -123,7 +123,7 @@ c_var_mu <- (sum(c_site, c_database, c_fu_pat) * d2p)  # mean total monthly cost
 c_var <- c(c_var_mu * 0.9, c_var_mu * 1.1)             # range for the monthly costs
 
 # range for the decision reversal costs
-c_rev <- c(0, 0)
+c_irrecov <- c(0, 0)
 
 # monthly incident population
 inc_pop <- ((12600 * 0.8 * 0.75 * 0.44) / 12)  # estimated from company submission in TA650
@@ -148,7 +148,7 @@ l_enbs <- enbs_fun(df_evsi_os, m_nb,  # replace "df_evsi_os" with "df_evsi_os_pf
          c_var = c_var / thresh,
          c_var_time = NULL,
          c_var_event = add_events,
-         c_rev = c_rev / thresh,
+         c_irrecov = c_irrecov / thresh,
          t_lag_awr = t_lag_awr,
          t_lag_oir = t_lag_oir,
          inc_pop = inc_pop,

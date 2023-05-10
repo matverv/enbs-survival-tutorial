@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Mathyn Vervaart, Eline Aas, Karl Claxton, Anna Heath, Mark Strong, Nicky Welton, Torbjørn Wisløff 
+# Copyright (c) 2023 Mathyn Vervaart
 # Licensed under the MIT License
 
 #####################################################################################
@@ -522,7 +522,7 @@ evsi_plot_fun <- function (evsi_ar, pevpi = NULL) {
 #####################################################################################
 # Population Expected Net Benefit of Sampling
 #####################################################################################
-enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_event = NULL, c_rev, t_lag_awr, t_lag_oir, inc_pop, prev_pop, dec_th, dr_voi,  reversal=1) {
+enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_event = NULL, c_irrecov, t_lag_awr, t_lag_oir, inc_pop, prev_pop, dec_th, dr_voi,  reversal=1) {
   
   # stop conditions
   if(dec_th<max(evsi_ar[,1]) | is.null(dec_th)) {stop("The decision relevance horizon must be equal or greater than the maximum additional follow-up time.")}
@@ -535,8 +535,8 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   if(min(c_fix)<0 | is.null(c_fix)) {stop("Fixed trial costs are not positive.")}
   if(length(c_fix) > 2) {stop("Fixed trial costs are not a range.")}
   
-  if(min(c_rev)<0 | is.null(c_rev)) {stop("Decision reversal costs are not positive.")}
-  if(length(c_rev) > 2) {stop("Decision reversal costs are not a range.")}
+  if(min(c_irrecov)<0 | is.null(c_irrecov)) {stop("Decision reversal costs are not positive.")}
+  if(length(c_irrecov) > 2) {stop("Decision reversal costs are not a range.")}
   
   if(min(inc_pop)<0 | is.null(inc_pop)) {stop("Monthly incident population is not positive.")}
   if(length(inc_pop) > 2) {stop("Monthly incident population is not a range.")}
@@ -638,10 +638,10 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   c_enbs_awr_sigma <- sqrt((reversal * pop_evsi$se)^2 + c_trial_var_sigma^2)
 
   # subtract reversal costs
-  c_rev_sigma <- (max(c_rev * reversal) - min(c_rev * reversal)) / (2 * qnorm(0.975)) # SE for reversal costs
+  c_irrecov_sigma <- (max(c_irrecov * reversal) - min(c_irrecov * reversal)) / (2 * qnorm(0.975)) # SE for reversal costs
   
-  c_enbs_awr <- c_enbs_awr - mean(c_rev * reversal)
-  c_enbs_awr_sigma <- sqrt(c_enbs_awr_sigma^2 + c_rev_sigma^2)
+  c_enbs_awr <- c_enbs_awr - mean(c_irrecov * reversal)
+  c_enbs_awr_sigma <- sqrt(c_enbs_awr_sigma^2 + c_irrecov_sigma^2)
   
   # apply discounting
   v_dr_voi <- 1/(1+dr_voi)^(x_times/12) # monthly discount rate 
