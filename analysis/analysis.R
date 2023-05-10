@@ -132,8 +132,8 @@ inc_pop <- c(inc_pop * 0.90, inc_pop * 1.10)   # range for the monthly incidence
 # prevalent "catch-up" population
 prev_pop <- c(50, 100) # assumption
 
-# range for the lag time between the end of follow-up and decision making and change of clinical practice in months for AWR
-# for an ongoing trial, subtract the time lag between the current follow-up and initial decision to avoid double counting
+# range for the lag time between the end of follow-up and implementation of a re-appraisal decision in clinical practice in months for AWR
+# for an ongoing trial, subtract the time between the current follow-up and initial decision to avoid double counting
 t_lag_awr <- c(3, 12) - 6  # AWR
 t_lag_oir <- c(3, 9) - 6 # OIR
 

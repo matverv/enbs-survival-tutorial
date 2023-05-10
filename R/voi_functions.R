@@ -638,9 +638,9 @@ enbs_fun <- function (evsi_ar, m_nb, c_fix, c_var,  c_var_time = NULL, c_var_eve
   c_enbs_awr_sigma <- sqrt((reversal * pop_evsi$se)^2 + c_trial_var_sigma^2)
 
   # subtract reversal costs
-  c_rev_sigma <- (max(c_rev) - min(c_rev)) / (2 * qnorm(0.975)) # SE for reversal costs
+  c_rev_sigma <- (max(c_rev * reversal) - min(c_rev * reversal)) / (2 * qnorm(0.975)) # SE for reversal costs
   
-  c_enbs_awr <- c_enbs_awr - mean(c_rev)
+  c_enbs_awr <- c_enbs_awr - mean(c_rev * reversal)
   c_enbs_awr_sigma <- sqrt(c_enbs_awr_sigma^2 + c_rev_sigma^2)
   
   # apply discounting
