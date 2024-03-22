@@ -4,7 +4,7 @@
 #####################################################################################
 # Install and load packages 
 #####################################################################################
-list_of_packages <- c("here", "flexsurv", "survminer", "MASS")
+list_of_packages <- c("flexsurv", "survminer", "MASS")
 new_packages <- list_of_packages[!(list_of_packages %in% installed.packages()[,"Package"])]
 if(length(new_packages)) install.packages(new_packages)
 lapply(list_of_packages, library, character.only = TRUE)
@@ -442,7 +442,7 @@ font_size <- 14
 run_pa_pembro <- function(nsim, price = 1) {
   
   n_sim <- nsim # number of simulations
-
+  
   #####################################################################################
   # Data sources
   #####################################################################################
@@ -461,7 +461,7 @@ run_pa_pembro <- function(nsim, price = 1) {
   #################################
   
   # load OS data
-  load(here("data", "ipd_os.RData"))
+  load("data/ipd_os.RData")
   
   # plot KM data
   #km_os <- plot_km_fun(ipd_os,  c("Pembrolizumab + Axitinib", "Sunitinib"), x_max = 24, break_x = 4)
@@ -492,7 +492,7 @@ run_pa_pembro <- function(nsim, price = 1) {
   h_os_suni <- apply(S_os_suni, 2, function (x) diff(-log(x)))
   
   # GP mortality per model cycle
-  gp_mort_rate <- read.csv(here("data","mort_rate_weekly_uk_2019.csv"))  # load lifetable data
+  gp_mort_rate <- read.csv("data/mort_rate_weekly_uk_2019.csv")  # load lifetable data
   gp_mort_rate_df <- data.frame(age = gp_mort_rate$Age, mort_r = gp_mort_rate$mort_r_f*(1-male)+gp_mort_rate$mort_r_m*male) # compute average conditional survival given proportion men/women
   gp_mort_rate_df <- gp_mort_rate_df[gp_mort_rate_df$age>=floor(age),]
   age_cycle <- v_cycle_year[1:(length(v_cycle_year)-1)] + age
@@ -512,11 +512,11 @@ run_pa_pembro <- function(nsim, price = 1) {
   #################################
   
   # load PFS data
-  load(here("data", "ipd_pfs.RData"))
+  load("data/ipd_pfs.RData")
   
   # plot KM data
   #km_pfs <- plot_km_fun(ipd_pfs,  c("Pembrolizumab + Axitinib", "Sunitinib"), x_max = 24, break_x = 4)
-
+  
   # convert times from months to weeks
   ipd_pfs$times <- ipd_pfs$times/month2year*year2week
   
@@ -752,7 +752,7 @@ run_pa_pembro <- function(nsim, price = 1) {
     c_simple_chemo1 = rgamma(n_sim, shape = gammaPar(174.40, Srange(156.96, 191.84)$s)$shape, scale = gammaPar(174.40, Srange(156.96, 191.84)$s)$scale),  # deliver simple parenteral chemotherapy at first attendance
     c_complex_chemo1 = rgamma(n_sim, shape = gammaPar(309.20, Srange((309.20/174.40)*156.96, (309.20/174.40)*191.84)$s)$shape, scale = gammaPar(309.20, Srange((309.20/174.40)*156.96, (309.20/174.40)*191.84)$s)$scale), # Deliver Complex Chemotherapy, including Prolonged Infusional Treatment, at First Attendance 
     c_oral_chemo = rep(0,n_sim),  
-
+    
     # disease management costs
     c_week_pfs0 = rgamma(n_sim, shape = gammaPar(280.05, Srange(252.05, 308.06)$s)$shape, scale = gammaPar(280.05, Srange(252.05, 308.06)$s)$scale), # weekly cost in PFS state (cycle 0)
     c_week_pfs = rgamma(n_sim, shape = gammaPar(51.05, Srange(45.95, 56.16)$s)$shape, scale = gammaPar(51.05, Srange(45.95, 56.16)$s)$scale), # Weekly cost in progression-free state (subsequent cycles) 
@@ -761,10 +761,10 @@ run_pa_pembro <- function(nsim, price = 1) {
     # subsequent treatment costs (assuming SE of 10% of the mean)
     c_subs_tr_pembro =  rgamma(n_sim,  shape = gammaPar(19096.77, 19096.77*0.1)$shape, scale = gammaPar(19096.77, 19096.77*0.1)$scale), # Subsequent treatment cost (following intervention) # ERG/NICE estimate
     c_subs_tr_suni = rgamma(n_sim, shape = gammaPar(24700.62, 24700.62*0.1)$shape, scale = gammaPar(24700.62, 24700.62*0.1)$scale), # Subsequent treatment cost (following comparator) # ERG/NICE estimate
-
+    
     # end of life costs (assuming SE proportional to reported in company submission (page 204 committee papers))
     c_terminal = rgamma(n_sim, shape = gammaPar(8073, 8073 / 6789.76 * Srange(6110.78, 7468.74)$s)$shape, scale = gammaPar(8073, 8073 / 6789.76 * Srange(6110.78, 7468.74)$s)$scale),  # ERG/NICE estimate
-
+    
     # adverse event management costs
     c_ae_pembro = rgamma(n_sim, shape = gammaPar(379.90, Srange(341.91, 417.89)$s)$shape, scale = gammaPar(379.90, Srange(341.91, 417.89)$s)$scale),
     c_ae_suni =  rgamma(n_sim, shape = gammaPar(348.34, Srange(313.51, 383.17)$s)$shape, scale = gammaPar(348.34, Srange(313.51, 383.17)$s)$scale),
@@ -939,7 +939,7 @@ run_pa_pembro <- function(nsim, price = 1) {
   # convert IPD from weekly times to months
   ipd_os$times <- ipd_os$times / year2week * month2year
   ipd_pfs$times <- ipd_pfs$times / year2week * month2year
-
+  
   #####################################################################################
   # run the PartSA model for each parameter sample
   #####################################################################################
@@ -953,5 +953,3 @@ run_pa_pembro <- function(nsim, price = 1) {
               m_e = cbind(results$v_qaly1, results$v_qaly2),
               l_surv = list(m_os1 = S_os_suni, m_os2 = S_os_pembro_wane, m_pfs1 = S_pfs_suni, m_pfs2 = S_pfs_pembro_wane)))
 } # end run_pa_pembro
-
-
