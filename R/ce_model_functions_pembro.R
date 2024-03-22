@@ -948,16 +948,10 @@ run_pa_pembro <- function(nsim, price = 1) {
   })
   results <- do.call(rbind, results)
   
+  # Return the PA output (costs, QALYs and OS and PFS probabilities)
   return(list(m_c = cbind(results$v_cost1, results$v_cost2),
               m_e = cbind(results$v_qaly1, results$v_qaly2),
               l_surv = list(m_os1 = S_os_suni, m_os2 = S_os_pembro_wane, m_pfs1 = S_pfs_suni, m_pfs2 = S_pfs_pembro_wane)))
-         
-  # return(list(v_cost1 = results$v_cost1, v_cost2 = results$v_cost2, v_ly1 = results$v_ly1, v_ly2 = results$v_ly2, v_qaly1 = results$v_qaly1, v_qaly2 = results$v_qaly2,
-  #             l_os = list(m_os1 = S_os_suni, m_os2 = S_os_pembro_wane), l_pfs = list(m_pfs1 = S_pfs_suni, m_pfs2 = S_pfs_pembro_wane),
-  #             m_ipd_os = ipd_os, m_ipd_pfs = ipd_pfs))
-  # return(list(v_cost1 = results$v_cost1, v_cost2 = results$v_cost2, v_qaly1 = results$v_qaly1, v_qaly2 = results$v_qaly2,
-  #             m_os1 = S_os_suni, m_os2 = S_os_pembro_wane, m_pfs1 = S_pfs_suni, m_pfs2 = S_pfs_pembro_wane))
-         
 } # end run_pa_pembro
 
 
