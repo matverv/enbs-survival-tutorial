@@ -1,10 +1,12 @@
 ############################################################################################
-# Title:  Calculating the Expected Net Benefit of Sampling for Survival Data: 
-#         A Tutorial and Case Study (2024)
-# 
-# This is the main code developed for the analysis presented in the paper.
+# Supplementary Material: Example calculations of Expected Value of Perfect Partial 
+# Information (EVPPI), Expected Value of Sample Information (EVSI), and Expected Net 
+# Benefit of Sampling (ENBS) for both Overall Survival (OS) and Progression-Free Survival (PFS)
 #
-# Authors:
+# This is supplementary material for the paper:
+#
+#  Calculating the Expected Net Benefit of Sampling for Survival Data: 
+#                  A Tutorial and Case Study. 2024.
 # 
 # Please cite the article when using this code.
 #
