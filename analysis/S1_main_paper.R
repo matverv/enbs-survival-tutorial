@@ -1,10 +1,8 @@
 ############################################################################################
-# Title:  Calculating the Expected Net Benefit of Sampling for Survival Data: 
-#         A Tutorial and Case Study (2024)
-# 
-# This is the main code developed for the analysis presented in the paper.
+# This is the main code developed for the analysis presented in the paper:
 #
-# Authors:
+#  Calculating the Expected Net Benefit of Sampling for Survival Data: 
+#                  A Tutorial and Case Study. 2024.
 # 
 # Please cite the article when using this code.
 #
