@@ -1,5 +1,20 @@
-# Copyright (c) 2023 Mathyn Vervaart
-# Licensed under the MIT License
+############################################################################################
+# Title:  Calculating the Expected Net Benefit of Sampling for Survival Data: 
+#         A Tutorial and Case Study (2024)
+# 
+# This is the main code developed for the analysis presented in the paper.
+#
+# Authors:
+# 
+# Please cite the article when using this code.
+#
+# License: This code is licensed under the MIT License.
+#
+# Developed using:
+#   R: Version 4.2.2 (2022-10-31)
+#   RStudio: Version 2023.12.1+402 (2023.12.1+402), RStudio, Inc.
+############################################################################################
+
 
 # ------------------------------------------------------------------
 # Install and/or load packages 
