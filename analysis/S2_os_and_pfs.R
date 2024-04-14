@@ -196,9 +196,9 @@ compute_evsi <- function(outputs, summ_stat, ...) {
 
 # Iterate through the list of summary statistic dataframes and calculate EVSI
 # Note: this may take a while using the default Gaussian Process regression method.
-# To use a faster alternative method, specify method = "earth" as an argument in the 
-# compute_evsi call, although be aware that it might be less accurate.
-l_evsi <- lapply(X = l_summ_stat, FUN = compute_evsi, outputs = m_nb, method = "earth")
+# To use a faster alternative method, specify method = "earth" as an additional argument below, 
+# although be aware that it might be less accurate.
+l_evsi <- lapply(X = l_summ_stat, FUN = compute_evsi, outputs = m_nb)
 
 # Combine the list of EVSI calculations into one dataframe
 df_evsi <- do.call(rbind, l_evsi) 
