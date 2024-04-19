@@ -11,16 +11,12 @@
 # 
 # When using this code, please cite the original paper and also:
 # Liu et al. (2014). Recovering the raw data behind a non-parametric survival curve. Systematic Reviews
-# Rini et al. (2019). Pembrolizumab plus axitinib versus sunitinib for advanced renal-cell carcinoma. NEJM.
 #
 # License: This code is licensed under the MIT License.
 # Developed using:
 #   R: Version 4.2.2 (2022-10-31)
 #   RStudio: Version 2023.12.1+402 (2023-12.1+402), RStudio, Inc.
 ############################################################################################
-
-
-rm(list=ls(all=TRUE))	
 
 # ------------------------------------------------------------------
 # # Install and/or load packages and source functions necessary for IPD reconstruction
