@@ -28,7 +28,7 @@ lapply(list_of_packages, library, character.only = TRUE)
 # ------------------------------------------------------------------
 
 # Load the cost-effectiveness model functions
-source("R/ce_fun_pembro.R")
+source("R/PembrolizumabCEA.R")
 
 # Run a probabilistic analysis of size "K"
 set.seed(123)            # set the seed for reproducibility
@@ -87,7 +87,7 @@ remove_dropouts <- function(times, dropouts) {
 l_atrisk_times <- list(remove_dropouts(v_cens_times1, dropouts1),
                        remove_dropouts(v_cens_times2, dropouts2))
 
-# Gamma hyperparameters for exponential dropout rates (number of dropouts, time at risk in months)
+# Gamma hyperparameters for monthly dropout rates (number of dropouts, time at risk in months)
 l_dropout_pars <- list(c(dropouts1, with(ipd_os, sum(times[treat == 1]))),
                        c(dropouts2, with(ipd_os, sum(times[treat == 2]))))
 
@@ -107,7 +107,7 @@ sim_surv_data_ongoing <- function(surv_probs, atrisk_times, dropout_pars,
     #                  outcome. Rows = model cycles, columns = PA simulations.
     # atrisk_times:    Vector of observed follow-up times in months for the patients at risk 
     #                  corresponding to the treatment and survival outcome in `surv_probs`.
-    # dropout_pars:    Gamma parameters for dropout rates (dropouts, time at risk in months).
+    # dropout_pars:    Gamma parameters for dropout rate (dropouts, time at risk in months).
     # adm_cens_months: Vector of additional administrative censoring times in months.
     # cycles_per_year: Model cycles per year, for cycle-month conversion.
   
@@ -124,16 +124,18 @@ sim_surv_data_ongoing <- function(surv_probs, atrisk_times, dropout_pars,
           min = min(surv_probs),
           max = spline(x      = v_cycles, 
                        y      = surv_probs, 
-                       xout   = atrisk_times, 
+                       xout   = atrisk_times,
+                       ties   = min,
                        method = "hyman")$y)
   })
-  
+
   # Interpolate the vectors of survival probabilities at the random uniform numbers using 
   # monotone cubic splines and record the interpolated cycle times
   m_surv_times <- sapply(seq_len(n_sim), function(k) { 
     spline(x      = round(surv_probs[, k], digits = 100),
            y      = v_cycles, 
-           xout   = m_rand_num[, k], 
+           xout   = m_rand_num[, k],
+           ties   = min,
            method = "hyman")$y
   })
   
@@ -201,7 +203,7 @@ compute_evsi <- function(outputs, summ_stat, ...) {
 }
 
 # Iterate through the list of summary statistic dataframes and calculate EVSI
-l_evsi <- lapply(X = l_summ_stat, FUN = compute_evsi, outputs = m_nb)
+l_evsi <- lapply(X = l_summ_stat, FUN = compute_evsi, outputs = m_nb, method = "gp")
 
 # Combine the list of EVSI calculations into one dataframe
 df_evsi <- do.call(rbind, l_evsi) 
