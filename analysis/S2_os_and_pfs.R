@@ -32,7 +32,7 @@ lapply(list_of_packages, library, character.only = TRUE)
 # ------------------------------------------------------------------
 
 # Load the cost-effectiveness model functions
-source("R/ce_fun_pembro.R")
+source("R/PembrolizumabCEA.R")
 
 # Run a probabilistic analysis of size "K"
 set.seed(123)            # set the seed for reproducibility
@@ -136,6 +136,7 @@ sim_surv_data_ongoing <- function(surv_probs, atrisk_times, dropout_pars,
           max = spline(x      = v_cycles, 
                        y      = surv_probs, 
                        xout   = atrisk_times, 
+                       ties   = min,
                        method = "hyman")$y)
   })
   
@@ -145,6 +146,7 @@ sim_surv_data_ongoing <- function(surv_probs, atrisk_times, dropout_pars,
     spline(x      = round(surv_probs[, k], digits = 100),
            y      = v_cycles, 
            xout   = m_rand_num[, k], 
+           ties   = min,
            method = "hyman")$y
   })
   
@@ -212,9 +214,10 @@ compute_evsi <- function(outputs, summ_stat, ...) {
 }
 
 # Iterate through the list of summary statistic dataframes and calculate EVSI
-# Note: this may take a while using the default Gaussian Process regression method.
-# To use a faster alternative method, specify method = "earth" as an additional argument below, 
-# although be aware that it might be less accurate.
+# Note: The default Gaussian Process regression method may be slow.
+# To speed up the process, consider reducing the number of PA simulations 'K',
+# or using a faster method such as "earth" (method = "earth"),
+# although be aware that alternative methods might be less accurate.
 l_evsi <- lapply(X = l_summ_stat, FUN = compute_evsi, outputs = m_nb)
 
 # Combine the list of EVSI calculations into one dataframe
