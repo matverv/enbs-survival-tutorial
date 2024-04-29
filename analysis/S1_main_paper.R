@@ -203,7 +203,7 @@ compute_evsi <- function(outputs, summ_stat, ...) {
 }
 
 # Iterate through the list of summary statistic dataframes and calculate EVSI
-l_evsi <- lapply(X = l_summ_stat, FUN = compute_evsi, outputs = m_nb, method = "gp")
+l_evsi <- lapply(X = l_summ_stat, FUN = compute_evsi, outputs = m_nb)
 
 # Combine the list of EVSI calculations into one dataframe
 df_evsi <- do.call(rbind, l_evsi) 
