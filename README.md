@@ -5,7 +5,7 @@ This GitHub repository contains the R code and analysis scripts accompanying the
 ## Repository Structure
 
 - `R/`: Contains the function files used by the analysis scripts.
-- `data/`: Contains the reconstructed IPD for OS and PFS, mortality data and postscript files of the KM plots.
+- `data/`: Contains the reconstructed IPD for OS and PFS, general population mortality data and postscript files of the KM plots.
 - `analysis/`: Contains the analysis scripts referenced in the paper:
    - [Appendix A: EVPPI, EVSI and ENBS for OS - Ongoing Trial](https://github.com/matverv/enbs-survival-tutorial/blob/main/analysis/S1_main_paper.R)
    - [Appendix B: EVPPI, EVSI and ENBS for OS and PFS - Ongoing Trial](https://github.com/matverv/enbs-survival-tutorial/blob/main/analysis/S2_os_and_pfs.R)
