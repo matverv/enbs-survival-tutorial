@@ -77,26 +77,3 @@ Please cite the following when using this code:
 
    Vervaart et al. Calculating the Expected Net Benefit of Sampling for Survival Data: A Tutorial and Case Study. (2024). [Journal Name], [Volume(Issue)], [Page Range]. [DOI]
 
-
-
-
-
-
-     Refer to the `Appendix E: Preparing and Importing Data from Excel` in our supplementary material for detailed instructions on formatting and exporting data from Excel. This appendix will also include screenshots of Excel to clearly demonstrate the expected data layout.
-
-
-
-
-
-
-5. To apply the analysis to your own case study, you will need to undertake the following steps:
-
-   - Replace the case-specific probabilistic analysis (PA) function and survival data with your own datasets. This involves ensuring that your PA results and survival data conform to the formats expected by the analysis scripts. If you do not have access to (reconstructed) IPD, you can still implement the analysis by utilizing the median follow-up time in the trial and making assumptions about trial dropout as explained in the main paper.
-
-   - Review and adjust any analysis settings such as number of trial dropouts, incidence, prevalence, trial costs and other case-specific details to accurately reflect your own case study.
-  
-
-   Detailed instructions on the required data formats and analysis settings can be found in the main paper or by examining the example case study provided in the repository. 
-
-
-
