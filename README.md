@@ -36,7 +36,7 @@ setwd("path/to/enbs-survival-tutorial")
 
 5. To apply the analysis to your own case study, you will need to undertake the following steps:
 
-    - Replace the case-specific probabilistic analysis (PA) function ('run_pa_pembro') and survival data ('data/ipd_os.RData', 'data/pfs_os.RData') with your own datasets, ensuring that your PA results and survival data conform to the formats expected by the analysis scripts. Detailed instructions on the required data formats and analysis settings can be found in the main paper or by examining the case study provided in the repository.
+    - Replace the case-specific probabilistic analysis (PA) function ('run_pa_pembro') and survival data ('data/ipd_os.RData', 'data/pfs_os.RData') with your own PA function and datasets, ensuring that your PA results and survival data conform to the formats expected by the analysis scripts. Detailed instructions on the required data formats and analysis settings can be found in the main paper or by examining the case study provided in the repository.
 
     - If you do not have access to (reconstructed) IPD, you can still implement the analysis by utilizing the median follow-up time in the trial and making assumptions about trial dropout as explained in the main paper.
 
