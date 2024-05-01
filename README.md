@@ -42,8 +42,6 @@ setwd("path/to/enbs-survival-tutorial")
 
     - Review and adjust any analysis settings such as the number of trial dropouts, incidence, prevalence, trial costs, and other case-specific details to accurately reflect your own case study.
 
-Detailed instructions on the required data formats and analysis settings can be found in the main paper or by examining the case study provided in the repository.
-
     **For Excel Users:**
 
     If your cost-effectiveness model and PA are conducted in Excel and you wish to use these results with our R scripts, follow these additional steps:
