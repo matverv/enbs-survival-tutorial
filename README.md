@@ -19,7 +19,8 @@ This GitHub repository contains the R code and analysis scripts accompanying the
 ```bash
 git clone https://github.com/matverv/enbs-survival-tutorial.git
 ```
-  or download as a ZIP file and extract it.
+  
+or download as a ZIP file and extract it.
 
 2. Install R and RStudio, if not already installed:
 - R: https://cran.r-project.org/
@@ -32,11 +33,21 @@ setwd("path/to/enbs-survival-tutorial")
 ```
 
 4. Open and run the desired analysis script from the analysis/ folder directly in RStudio. The scripts will automatically install any required packages that are not already installed on your system and then load them for use.
- 
+
+5. To apply the analysis to your own case study, you will need to undertake the following steps:
+
+   - Replace the case-specific probabilistic analysis (PA) function and survival data with your own datasets. This involves ensuring that your PA results and survival data conform to the formats expected by the analysis scripts. If you do not have access to (reconstructed) IPD, you can still implement the analysis by utilizing the median follow-up time in the trial and making assumptions about trial dropout as explained in the main paper.
+
+   - Review and adjust any analysis settings such as number of trial dropouts, incidence, prevalence, trial costs and other case-specific details to accurately reflect your own case study.
+  
+
+   Detailed instructions on the required data formats and analysis settings can be found in the main paper or by examining the example case study provided in the repository. 
+
 
 ## Citation
 
 Please cite the following when using this code:
 
-    Calculating the Expected Net Benefit of Sampling for Survival Data: A Tutorial and Case Study. (2024). [Journal Information].
+   Calculating the Expected Net Benefit of Sampling for Survival Data: A Tutorial and Case Study. (2024). [Journal Name], [Volume(Issue)], [Page Range]. [DOI]
+
 
