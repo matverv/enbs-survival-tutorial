@@ -7,10 +7,10 @@ This GitHub repository contains the R code and analysis scripts accompanying the
 - `R/`: Contains the function files used by the analysis scripts.
 - `data/`: Contains the reconstructed IPD for OS and PFS, general population mortality data and postscript files of the KM plots.
 - `analysis/`: Contains the analysis scripts referenced in the paper:
-   - [Appendix A: EVPPI, EVSI and ENBS for OS - Ongoing Trial](https://github.com/matverv/enbs-survival-tutorial/blob/main/analysis/S1_main_paper.R)
-   - [Appendix B: EVPPI, EVSI and ENBS for OS and PFS - Ongoing Trial](https://github.com/matverv/enbs-survival-tutorial/blob/main/analysis/S2_os_and_pfs.R)
-   - [Appendix C: EVPPI, EVSI and ENBS for OS and PFS - New Trial](https://github.com/matverv/enbs-survival-tutorial/blob/main/analysis/S3_new_trial.R)
-   - [Appendix D: Reconstruction of Individual Patient Data for OS and PFS](https://github.com/matverv/enbs-survival-tutorial/blob/main/analysis/S4_reconstruct_ipdR.R)
+   - [Supp. 1: EVPPI, EVSI and ENBS for OS - Ongoing Trial](https://github.com/matverv/enbs-survival-tutorial/blob/main/analysis/S1_main_paper.R)
+   - [Supp. 2: EVPPI, EVSI and ENBS for OS and PFS - Ongoing Trial](https://github.com/matverv/enbs-survival-tutorial/blob/main/analysis/S2_os_and_pfs.R)
+   - [Supp. 3: Appendix C: EVPPI, EVSI and ENBS for OS and PFS - New Trial](https://github.com/matverv/enbs-survival-tutorial/blob/main/analysis/S3_new_trial.R)
+   - [Supp. 4: Reconstruction of Individual Patient Data for OS and PFS](https://github.com/matverv/enbs-survival-tutorial/blob/main/analysis/S4_reconstruct_ipdR.R)
 
 ## How to Use
 
