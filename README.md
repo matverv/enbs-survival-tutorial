@@ -36,7 +36,7 @@ setwd("path/to/enbs-survival-tutorial")
 
 5. To apply the analysis to your own case study, you will need to undertake the following steps:
 
-    - Replace the case-specific probabilistic analysis (PA) function ('run_pa_pembro') and survival data ('data/ipd_os.RData', 'data/pfs_os.RData') with your own PA function and survival datasets, ensuring that your PA results and survival data conform to the formats expected by the analysis scripts. Detailed instructions on the required data formats and analysis settings can be found in the main paper or by examining the case study provided in the repository.
+    - Replace the case-specific probabilistic analysis (PA) function `run_pa_pembro` and survival data `data/ipd_os.RData` and if relevant `data/pfs_os.RData` with your own PA function and survival datasets, ensuring that your PA results and survival data conform to the formats expected by the analysis scripts. Detailed instructions on the required data formats and analysis settings can be found in the main paper or by examining the case study provided in the repository.
 
     - If you do not have access to (reconstructed) IPD, you can still implement the analysis by utilizing the median follow-up time in the trial and making assumptions about trial dropout as explained in the main paper.
 
@@ -46,7 +46,7 @@ setwd("path/to/enbs-survival-tutorial")
 
     If your cost-effectiveness model and PA are conducted in Excel and you wish to use these results with our R scripts, follow these additional steps:
 
-      - Store your PA results as seperate CSV files, ensuring that the data structure for costs (m_c), QALYs (m_e), and survival probabilities (e.g. m_os1, m_os2, m_pfs1, m_pfs2) conforms to the expected format. Below are illustrative screenshots showing the format for m_c (costs), m_e (QALYs), and an example of survival probabilities for one treatment (m_os1). Ensure your data follows a similar structure. 
+      - Store your PA results as seperate CSV files, ensuring that the data structure for costs (m_c), QALYs (m_e), and survival probabilities (e.g. m_os1, m_os2, m_pfs1, m_pfs2) conforms to the expected format. Below are illustrative screenshots showing the format for `m_c` (costs), `m_e` (QALYs), and an example of survival probabilities for one treatment (`m_os1`). Ensure your data follows a similar structure. 
        <p float="left">
         <img src="https://github.com/matverv/enbs-survival-tutorial/assets/58030182/3fe35bd2-45a7-4e20-b766-8187a0fdc98a" alt="Costs Example" width="400"/>
         <img src="https://github.com/matverv/enbs-survival-tutorial/assets/58030182/cb0b37ed-6dab-4ed9-8cb2-299e9e52d36e" alt="QALYs Example" width="400"/> 
