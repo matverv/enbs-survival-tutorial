@@ -1,6 +1,6 @@
 # Expected Net Benefit of Sampling for Survival Data : A Tutorial
 This GitHub repository contains the R code and analysis scripts accompanying the paper:
-- Calculating the Expected Net Benefit of Sampling for Survival Data: A Tutorial and Case Study. 2024.
+- Vervaart et al. Calculating the Expected Net Benefit of Sampling for Survival Data: A Tutorial and Case Study. 2024.
 
 ## Repository Structure
 
@@ -48,6 +48,6 @@ setwd("path/to/enbs-survival-tutorial")
 
 Please cite the following when using this code:
 
-   Calculating the Expected Net Benefit of Sampling for Survival Data: A Tutorial and Case Study. (2024). [Journal Name], [Volume(Issue)], [Page Range]. [DOI]
+   Vervaart et al. Calculating the Expected Net Benefit of Sampling for Survival Data: A Tutorial and Case Study. (2024). [Journal Name], [Volume(Issue)], [Page Range]. [DOI]
 
 
