@@ -36,6 +36,56 @@ setwd("path/to/enbs-survival-tutorial")
 
 5. To apply the analysis to your own case study, you will need to undertake the following steps:
 
+    - Replace the case-specific probabilistic analysis (PA) function ('run_pa_pembro') and survival data ('data/ipd_os.RData', 'data/pfs_os.RData') with your own datasets, ensuring that your PA results and survival data conform to the formats expected by the analysis scripts. 
+
+    - If you do not have access to (reconstructed) IPD, you can still implement the analysis by utilizing the median follow-up time in the trial and making assumptions about trial dropout as explained in the main paper.
+
+    - Review and adjust any analysis settings such as the number of trial dropouts, incidence, prevalence, trial costs, and other case-specific details to accurately reflect your own case study.
+
+    **For Excel Users:**
+
+    If your cost-effectiveness model and PA are conducted in Excel and you wish to use these results with our R scripts, follow these additional steps:
+
+      - Prepare your PA results in Excel, ensuring that the data structure for costs (`m_c`), QALYs (`m_e`), and survival probabilities (e.g. `m_os1`, `m_os2`, `m_pfs1`, `m_pfs2`) conforms to the expected format.
+
+      - Export each matrix from Excel to separate CSV files.
+
+      - Import the CSV files into R using the following commands:
+
+      ```r
+      m_c    <- read.csv("path/to/your/costs.csv", header = TRUE) # rows index the PA simulations and columns index the treatment strategies
+      m_e    <- read.csv("path/to/your/qalys.csv", header = TRUE) # rows index the PA simulations and columns index the treatment strategies
+      m_os1  <- read.csv("path/to/your/os1.csv", header = TRUE)   # rows index the model cycles and columns index the PA simulations
+      m_os2  <- read.csv("path/to/your/os2.csv", header = TRUE)   # rows index the model cycles and columns index the PA simulations
+      m_pfs1 <- read.csv("path/to/your/pfs1.csv", header = TRUE)  # rows index the model cycles and columns index the PA simulations
+      m_pfs2 <- read.csv("path/to/your/pfs2.csv", header = TRUE)  # rows index the model cycles and columns index the PA simulations
+
+      l_surv <- list(m_os1 = m_os1, m_os2 = m_os2, m_pfs1 = m_pfs1, m_pfs2 = m_pfs2)
+      l_pa   <- list(m_c = m_c, m_e = m_e, l_surv = l_surv)
+      ```
+
+Detailed instructions on the required data formats and analysis settings can be found in the main paper or by examining the case study provided in the repository.
+
+## Citation
+
+Please cite the following when using this code:
+
+   Vervaart et al. Calculating the Expected Net Benefit of Sampling for Survival Data: A Tutorial and Case Study. (2024). [Journal Name], [Volume(Issue)], [Page Range]. [DOI]
+
+
+
+
+
+
+     Refer to the `Appendix E: Preparing and Importing Data from Excel` in our supplementary material for detailed instructions on formatting and exporting data from Excel. This appendix will also include screenshots of Excel to clearly demonstrate the expected data layout.
+
+
+
+
+
+
+5. To apply the analysis to your own case study, you will need to undertake the following steps:
+
    - Replace the case-specific probabilistic analysis (PA) function and survival data with your own datasets. This involves ensuring that your PA results and survival data conform to the formats expected by the analysis scripts. If you do not have access to (reconstructed) IPD, you can still implement the analysis by utilizing the median follow-up time in the trial and making assumptions about trial dropout as explained in the main paper.
 
    - Review and adjust any analysis settings such as number of trial dropouts, incidence, prevalence, trial costs and other case-specific details to accurately reflect your own case study.
@@ -43,11 +93,5 @@ setwd("path/to/enbs-survival-tutorial")
 
    Detailed instructions on the required data formats and analysis settings can be found in the main paper or by examining the example case study provided in the repository. 
 
-
-## Citation
-
-Please cite the following when using this code:
-
-   Vervaart et al. Calculating the Expected Net Benefit of Sampling for Survival Data: A Tutorial and Case Study. (2024). [Journal Name], [Volume(Issue)], [Page Range]. [DOI]
 
 
