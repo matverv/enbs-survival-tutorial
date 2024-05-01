@@ -46,7 +46,7 @@ setwd("path/to/enbs-survival-tutorial")
 
     If your cost-effectiveness model and PA are conducted in Excel and you wish to use these results with our R scripts, follow these additional steps:
 
-      - Prepare your PA results in Excel, ensuring that the data structure for costs (`m_c`), QALYs (`m_e`), and survival probabilities (e.g. `m_os1`, `m_os2`, `m_pfs1`, `m_pfs2`) conforms to the expected format. 
+      - Prepare your PA results in Excel, ensuring that the data structure for costs (`m_c`), QALYs (`m_e`), and survival probabilities (e.g. `m_os1`, `m_os2`, `m_pfs1`, `m_pfs2`) conforms to the expected format. Detailed instructions on the required data formats and analysis settings can be found in the main paper or by examining the case study provided in the repository.
     
       - Export each matrix from Excel to separate CSV files. Below are illustrative screenshots showing the format for `m_c` (costs), `m_e` (QALYs), and an example of survival probabilities for one treatment (`m_os1`). Ensure your data follows a similar structure.
        <p float="left">
@@ -69,7 +69,6 @@ setwd("path/to/enbs-survival-tutorial")
       l_pa   <- list(m_c = m_c, m_e = m_e, l_surv = l_surv)
       ```
 
-Detailed instructions on the required data formats and analysis settings can be found in the main paper or by examining the case study provided in the repository.
 
 ## Citation
 
