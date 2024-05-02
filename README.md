@@ -46,9 +46,9 @@ setwd("path/to/enbs-survival-tutorial")
 
       - Store your PA results as seperate CSV files, ensuring that the data structure for costs (m_c), QALYs (m_e), and survival probabilities (e.g. m_os1, m_os2, m_pfs1, m_pfs2) conforms to the expected format. Below are illustrative screenshots showing the format for `m_c` (costs), `m_e` (QALYs), and an example of survival probabilities for one treatment (`m_os1`). Ensure your data follows a similar structure. 
        <p float="left">
-        <img src="https://github.com/matverv/enbs-survival-tutorial/assets/58030182/3fe35bd2-45a7-4e20-b766-8187a0fdc98a" alt="Costs Example" width="400"/>
-        <img src="https://github.com/matverv/enbs-survival-tutorial/assets/58030182/cb0b37ed-6dab-4ed9-8cb2-299e9e52d36e" alt="QALYs Example" width="400"/> 
-        <img src="https://github.com/matverv/enbs-survival-tutorial/assets/58030182/48d82676-b2cb-4e8c-a3b8-365f13276e19" alt="Survival Probabilities Example" width="400"/>
+        <img src="https://github.com/matverv/enbs-survival-tutorial/assets/58030182/3fe35bd2-45a7-4e20-b766-8187a0fdc98a" alt="Costs Example"/>
+        <img src="https://github.com/matverv/enbs-survival-tutorial/assets/58030182/cb0b37ed-6dab-4ed9-8cb2-299e9e52d36e" alt="QALYs Example"/> 
+        <img src="https://github.com/matverv/enbs-survival-tutorial/assets/58030182/48d82676-b2cb-4e8c-a3b8-365f13276e19" alt="Survival Probabilities Example"/>
       </p>
 
       - Import the CSV files into R using the following commands:
