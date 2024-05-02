@@ -85,7 +85,7 @@ l_dropout_pars <- rep(list(c(dropouts1, with(ipd_os, sum(times[treat == 1]))),
 v_n <- rep(200, times = 4)
 
 # Gamma hyperparameters for the monthly enrollment rates
-# The following settings correspond to an average enrollment of 150 / 12 = 12.5 patients per month
+# The following settings correspond to an average enrollment of 150 / 12 = 12.5 patients per month (150 patients per year)
 l_enroll <- rep(list(c(150, 12)),
                 times = 4)
 
