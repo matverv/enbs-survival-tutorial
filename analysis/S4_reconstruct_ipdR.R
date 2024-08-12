@@ -6,8 +6,8 @@
 # of survival data in Rini et al. (2019) used as supplementary material for 
 # the case study analysis presented in the paper:
 #
-#  Calculating the Expected Net Benefit of Sampling for Survival Data: 
-#                  A Tutorial and Case Study. 2024.
+# Vervaart, M. (2024). Calculating the Expected Net Benefit of Sampling for Survival Data: 
+#   A Tutorial and Case Study. Medical Decision Making, in press.
 # 
 # When using this code, please cite the original paper and also:
 # Liu et al. (2014). Recovering the raw data behind a non-parametric survival curve. Systematic Reviews
