@@ -70,5 +70,5 @@ setwd("path/to/enbs-survival-tutorial")
 
 Please cite the following when using this code:
 
-  Vervaart, M. (2024). Calculating the Expected Net Benefit of Sampling for Survival Data: A Tutorial and Case Study. Medical Decision Making, in press.
+  Vervaart, M. (2024). Calculating the Expected Net Benefit of Sampling for Survival Data: A Tutorial and Case Study. Medical Decision Making.
 
