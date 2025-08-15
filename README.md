@@ -4,7 +4,7 @@ This GitHub repository contains the R code and analysis scripts accompanying the
 
 ### Updates & corrections
 - August 2025: Correction to discounting and time horizon logic
-  The logic for handling decision horizons was replaced with a more direct calculation, and a new `r pv_annuity` function was added to improve the accuracy of the discounting.
+  The logic for handling decision horizons was replaced with a more direct calculation, and a new `pv_annuity` function was added to improve the accuracy of the discounting.
 
 
 ### Getting started: Running the analysis
