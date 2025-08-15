@@ -6,7 +6,6 @@ This GitHub repository contains the R code and analysis scripts accompanying the
 - August 2025: Correction to discounting and time horizon logic
   The logic for handling decision horizons was replaced with a more direct calculation, and a new `r pv_annuity` function was added to improve the accuracy of the discounting.
 
-***
 
 ### Getting started: Running the analysis
 
@@ -31,8 +30,6 @@ Follow these steps to run the case study analysis included in the paper.
     - [`S2_os_and_pfs.R`: EVPPI, EVSI and ENBS for OS and PFS - Ongoing Trial](https://github.com/matverv/enbs-survival-tutorial/blob/main/analysis/S2_os_and_pfs.R)
     - [`S3_new_trial.R`: EVPPI, EVSI and ENBS for OS and PFS - New Trial](https://github.com/matverv/enbs-survival-tutorial/blob/main/analysis/S3_new_trial.R)
     - [`S4_reconstruct_ipd.R`: Reconstruction of Individual Patient Data](https://github.com/matverv/enbs-survival-tutorial/blob/main/analysis/S4_reconstruct_ipdR.R)
-
-***
 
 
 ## Using your own data
@@ -69,8 +66,6 @@ l_surv <- list(m_os1 = m_os1, m_os2 = m_os2, m_pfs1 = m_pfs1, m_pfs2 = m_pfs2)
 l_pa   <- list(m_c = m_c, m_e = m_e, l_surv = l_surv)
 ```
 
-***
-
 
 ### Repository structure
 
@@ -78,7 +73,6 @@ l_pa   <- list(m_c = m_c, m_e = m_e, l_surv = l_surv)
 - `data/`: Contains the case study data.
 - `analysis/`: Contains the main analysis scripts.
 
-***
 
 ## Citation
 
