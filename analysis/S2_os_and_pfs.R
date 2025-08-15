@@ -6,7 +6,7 @@
 # This is supplementary material for the paper:
 #
 # Vervaart, M. (2024). Calculating the Expected Net Benefit of Sampling for Survival Data: 
-#   A Tutorial and Case Study. Medical Decision Making, in press.
+#   A Tutorial and Case Study. Medical Decision Making.
 # 
 # Please cite the article when using this code.
 #
