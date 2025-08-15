@@ -1,6 +1,6 @@
 # Expected Net Benefit of Sampling for Survival Data : A Tutorial
 This GitHub repository contains the R code and analysis scripts accompanying the paper:
-- Vervaart, M. (2024). Calculating the Expected Net Benefit of Sampling for Survival Data: A Tutorial and Case Study. Medical Decision Making.
+- Vervaart, M. (2024). Calculating the Expected Net Benefit of Sampling for Survival Data: A Tutorial and Case Study. Medical Decision Making, 44(7), 719–741. https://doi.org/10.1177/0272989X241279459
 
 ### Updates & corrections
 - August 2025: Correction to discounting and time horizon logic
